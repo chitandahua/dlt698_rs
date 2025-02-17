@@ -113,7 +113,12 @@ macro_rules! impl_from_to {
 
                 Ok(<$ty>::from_be_bytes(extended.try_into().unwrap()))
             }
+        }
+    };
+    (IMPL SIGNED $ty:ty, $from:ident, $to:ident) => {
+        impl_from_to!($ty, $from, $to);
 
+        impl Integer<'_> {
             pub fn $from(i: $ty) -> Self {
                 let b = i.to_be_bytes();
                 if i >= 0 {
@@ -123,20 +128,35 @@ macro_rules! impl_from_to {
                 }
             }
         }
-    };    
+    };
+    (IMPL UNSIGNED $ty:ty, $from:ident, $to:ident) => {
+        impl_from_to!($ty, $from, $to);
+
+        impl Integer<'_> {
+            pub fn $from(i: $ty) -> Self {
+                Self::from_const_array(i.to_be_bytes())
+            }
+        }
+    };
+    (SIGNED $ty:ty, $from:ident, $to:ident) => {
+        impl_from_to!(IMPL SIGNED $ty, $from, $to);
+    };
+    (UNSIGNED $ty:ty, $from:ident, $to:ident) => {
+        impl_from_to!(IMPL UNSIGNED $ty, $from, $to);
+    };
 }
 
-impl_from_to!(i8, from_i8, as_i8);
-impl_from_to!(i16, from_i16, as_i16);
-impl_from_to!(i32, from_i32, as_i32);
-impl_from_to!(i64, from_i64, as_i64);
-impl_from_to!(i128, from_i128, as_i128);
+impl_from_to!(SIGNED i8, from_i8, as_i8);
+impl_from_to!(SIGNED i16, from_i16, as_i16);
+impl_from_to!(SIGNED i32, from_i32, as_i32);
+impl_from_to!(SIGNED i64, from_i64, as_i64);
+impl_from_to!(SIGNED i128, from_i128, as_i128);
 
-impl_from_to!(u8, from_u8, as_u8);
-impl_from_to!(u16, from_u16, as_u16);
-impl_from_to!(u32, from_u32, as_u32);
-impl_from_to!(u64, from_u64, as_u64);
-impl_from_to!(u128, from_u128, as_u128);
+impl_from_to!(UNSIGNED u8, from_u8, as_u8);
+impl_from_to!(UNSIGNED u16, from_u16, as_u16);
+impl_from_to!(UNSIGNED u32, from_u32, as_u32);
+impl_from_to!(UNSIGNED u64, from_u64, as_u64);
+impl_from_to!(UNSIGNED u128, from_u128, as_u128);
 
 impl AsRef<[u8]> for Integer<'_> {
     fn as_ref(&self) -> &[u8] {

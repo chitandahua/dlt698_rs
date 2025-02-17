@@ -1,9 +1,9 @@
 use asn1_rs::{Error, ParseResult, Result, SerializeResult};
 use std::io::Write;
 
-pub trait AxdrTag {
-    fn tag(&self) -> u8;
-}
+//pub trait AxdrTag {
+//    fn tag(&self) -> u8;
+//}
 
 pub trait FromAxdr<'a, E = Error>: Sized {
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self, E>;
