@@ -1,15 +1,8 @@
+use super::is_highest_bit_set;
 use super::traits::{FromAxdr, ToAxdr};
 use asn1_rs::{Error, ParseResult, Result, SerializeResult};
 use std::borrow::Cow;
 use std::io::Write;
-
-#[inline]
-fn is_highest_bit_set(bytes: &[u8]) -> bool {
-    bytes
-        .first()
-        .map(|byte| byte & 0b10000000 != 0)
-        .unwrap_or(false)
-}
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Integer<'a> {
@@ -94,6 +87,9 @@ macro_rules! impl_from_to {
                 value.$to()
             }
         }
+    };
+    (IMPL SIGNED $ty:ty, $from:ident, $to:ident) => {
+        impl_from_to!($ty, $from, $to);
 
         impl Integer<'_> {
             pub fn $to(&self) -> Result<$ty> {
@@ -113,12 +109,7 @@ macro_rules! impl_from_to {
 
                 Ok(<$ty>::from_be_bytes(extended.try_into().unwrap()))
             }
-        }
-    };
-    (IMPL SIGNED $ty:ty, $from:ident, $to:ident) => {
-        impl_from_to!($ty, $from, $to);
 
-        impl Integer<'_> {
             pub fn $from(i: $ty) -> Self {
                 let b = i.to_be_bytes();
                 if i >= 0 {
@@ -133,6 +124,20 @@ macro_rules! impl_from_to {
         impl_from_to!($ty, $from, $to);
 
         impl Integer<'_> {
+            pub fn $to(&self) -> Result<$ty> {
+                let size = std::mem::size_of::<$ty>();
+                let bytes = self.as_ref();
+                let mut extended = vec![0u8; size];
+
+                if size > bytes.len() {
+                    extended[size - bytes.len()..].copy_from_slice(bytes);
+                } else {
+                    extended.copy_from_slice(&bytes[bytes.len() - size..]);
+                };
+
+                Ok(<$ty>::from_be_bytes(extended.try_into().unwrap()))
+            }
+
             pub fn $from(i: $ty) -> Self {
                 Self::from_const_array(i.to_be_bytes())
             }
@@ -168,9 +173,15 @@ impl<'a> FromAxdr<'a> for Integer<'a> {
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         // 判断是否有长度区
         if !is_highest_bit_set(bytes) {
+            if bytes.len() < 1 {
+                return Err(asn1_rs::Err::Error(Error::InvalidLength));
+            }
             Ok((&bytes[1..], bytes[0].into()))
         } else {
             let len = (bytes[0] & 0x7f) as usize;
+            if bytes.len() < 1 + len {
+                return Err(asn1_rs::Err::Error(Error::InvalidLength));
+            }
             Ok((&bytes[1 + len..], Integer::new(&bytes[1..1 + len])))
         }
     }
