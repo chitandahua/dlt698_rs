@@ -6,15 +6,15 @@ use std::borrow::Cow;
 
 // 定长BitString
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct FixedBitString<const N: usize>([u8; N]);
+pub struct FixedBitString<const N: usize, const BYTES: usize>([u8; BYTES]);
 
-impl<const N: usize> FixedBitString<N> {
-    pub fn new(data: [u8; N]) -> Self {
+impl<const N: usize, const BYTES: usize> FixedBitString<N, BYTES> {
+    pub fn new(data: [u8; BYTES]) -> Self {
         Self(data)
     }
 
     pub fn from_slice(slice: &[u8]) -> Result<Self, TryFromSliceError> {
-        Ok(Self(<[u8; N]>::try_from(slice)?))
+        Ok(Self(<[u8; BYTES]>::try_from(slice)?))
     }
 
     pub fn from_vec(vec: Vec<u8>) -> Result<Self, TryFromSliceError> {
@@ -25,33 +25,33 @@ impl<const N: usize> FixedBitString<N> {
         &self.0
     }
 
-    pub fn into_array(self) -> [u8; N] {
+    pub fn into_array(self) -> [u8; BYTES] {
         self.0
     }
 }
 
-impl<const N: usize> AsRef<[u8]> for FixedBitString<N> {
+impl<const N: usize, const BYTES: usize> AsRef<[u8]> for FixedBitString<N, BYTES> {
     fn as_ref(&self) -> &[u8] {
         &self.0
     }
 }
 
-impl<const N: usize> FromAxdr<'_> for FixedBitString<N> {
+impl<const N: usize, const BYTES: usize> FromAxdr<'_> for FixedBitString<N, BYTES> {
     fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
-        if bytes.len() < N {
+        if bytes.len() < BYTES {
             return Err(asn1_rs::Err::Error(Error::InvalidLength));
         }
 
         Ok((
-            &bytes[N..],
-            FixedBitString::<N>::new(bytes[0..N].try_into().unwrap()),
+            &bytes[BYTES..],
+            FixedBitString::<N, BYTES>::new(bytes[0..BYTES].try_into().unwrap()),
         ))
     }
 }
 
-impl<const N: usize> ToAxdr for FixedBitString<N> {
+impl<const N: usize, const BYTES: usize> ToAxdr for FixedBitString<N, BYTES> {
     fn to_axdr_len(&self) -> Result<usize> {
-        Ok(N)
+        Ok(BYTES)
     }
 
     fn write_axdr_header(&self, _writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
@@ -110,18 +110,6 @@ impl<'a> FromAxdr<'a> for BitString<'a> {
         // TODO 最前面的Length为变长Integer的编码? 但是没有负数 没有补码。。。
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
         let len = int.as_u64()? as usize; // TODO BigInt?
-                                          //if bytes.len() < 1 {
-                                          //    return Err(asn1_rs::Err::Error(Error::InvalidLength));
-                                          //}
-                                          //
-                                          //let (len, offset) = if !is_highest_bit_set(bytes) {
-                                          //    (bytes[0] as usize, 1)
-                                          //} else {
-                                          //
-                                          //    let len = (bytes[0] & 0x7f) as usize;
-                                          //    let bytes_len = u64::from_be_bytes(bytes[1..1 + len].try_into().unwrap());
-                                          //    (len, len + 1)
-                                          //};
 
         let bytes_num = bytes_number(len);
         let unused_bits = unused_bits(len);
@@ -208,13 +196,13 @@ mod tests {
 
     #[test]
     fn test_fixed_bit_string_decode() {
-        let (_, obj) = FixedBitString::<3>::from_axdr(&[0x0d, 0x67, 0x50]).unwrap();
+        let (_, obj) = FixedBitString::<20, 3>::from_axdr(&[0x0d, 0x67, 0x50]).unwrap();
         assert_eq!(obj.as_ref(), &[0x0d, 0x67, 0x50]);
     }
 
     #[test]
     fn test_fixed_bit_string_encode() {
-        let obj = FixedBitString::<3>::new([0x0d, 0x67, 0x50]);
+        let obj = FixedBitString::<20, 3>::new([0x0d, 0x67, 0x50]);
         assert_eq!(&obj.to_axdr_vec().unwrap(), &[0x0d, 0x67, 0x50]);
     }
 }

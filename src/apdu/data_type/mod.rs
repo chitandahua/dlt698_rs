@@ -1,7 +1,11 @@
 mod bitstring;
 mod boolean;
+mod choice;
 mod enumerated;
 mod integer;
+mod octetstring;
+mod strings;
+mod tag;
 mod traits;
 mod unsigned_integer;
 
