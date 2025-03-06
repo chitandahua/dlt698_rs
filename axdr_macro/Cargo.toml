@@ -1,0 +1,14 @@
+[package]
+name = "axdr_macro"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+synstructure = "0"
+quote = "1"
+syn = "2"
+proc-macro2 = "1"
+asn1-rs = "0"
