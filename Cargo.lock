@@ -41,6 +41,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "asn1_type"
+version = "0.1.0"
+dependencies = [
+ "asn1-rs",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -51,6 +58,7 @@ name = "axdr_macro"
 version = "0.1.0"
 dependencies = [
  "asn1-rs",
+ "asn1_type",
  "proc-macro2",
  "quote",
  "syn",
@@ -73,6 +81,7 @@ name = "dlt698_rs"
 version = "0.1.0"
 dependencies = [
  "asn1-rs",
+ "asn1_type",
  "axdr_macro",
 ]
 

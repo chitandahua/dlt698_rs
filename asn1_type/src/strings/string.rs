@@ -1,6 +1,6 @@
-use crate::apdu::data_type::strings::Utf8String;
-use crate::apdu::data_type::traits::{FromAxdr, ToAxdr};
-use crate::apdu::data_type::unsigned_integer::UnsignedInteger;
+use crate::strings::Utf8String;
+use crate::traits::{FromAxdr, ToAxdr};
+use crate::unsigned_integer::UnsignedInteger;
 use asn1_rs::{ParseResult, Result, SerializeResult};
 
 impl FromAxdr<'_> for String {

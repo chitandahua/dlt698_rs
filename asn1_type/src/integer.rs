@@ -218,7 +218,7 @@ macro_rules! impl_axdr {
 
                 Ok((
                     &bytes[size..],
-                    <$ty>::from_be_bytes(bytes.try_into().unwrap()),
+                    <$ty>::from_be_bytes(bytes[0..size].try_into().unwrap()),
                 ))
             }
         }

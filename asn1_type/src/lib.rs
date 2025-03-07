@@ -2,13 +2,13 @@ use octetstring::FixedOctetString;
 
 mod bitstring;
 mod boolean;
-mod choice;
+pub mod choice;
 mod enumerated;
 mod integer;
 mod octetstring;
 mod strings;
 mod tag;
-mod traits;
+pub mod traits;
 mod unsigned_integer;
 
 #[inline]

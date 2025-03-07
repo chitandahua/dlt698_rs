@@ -1,5 +1,5 @@
-use crate::apdu::data_type::traits::{FromAxdr, ToAxdr};
-use crate::apdu::data_type::unsigned_integer::UnsignedInteger;
+use crate::traits::{FromAxdr, ToAxdr};
+use crate::unsigned_integer::UnsignedInteger;
 use asn1_rs::{Error, ParseResult, Result, SerializeResult};
 
 impl<'a> FromAxdr<'a> for &'a str {

@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 asn1-rs = "0"
 axdr_macro = { path = "./axdr_macro" }
+asn1_type = { path = "./asn1_type" }

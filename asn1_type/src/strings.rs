@@ -17,8 +17,8 @@ pub trait TestValidCharset {
 macro_rules! asn1_axdr_string {
     (IMPL $name:ident, $sname:expr) => {
         use asn1_rs::{Error, ParseResult, Result, SerializeResult};
-        use crate::apdu::data_type::traits::{FromAxdr, ToAxdr};
-        use crate::apdu::data_type::unsigned_integer::UnsignedInteger;
+        use crate::traits::{FromAxdr, ToAxdr};
+        use crate::unsigned_integer::UnsignedInteger;
 
         #[derive(Debug, PartialEq, Eq)]
         pub struct $name<'a> {
