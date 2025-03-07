@@ -7,8 +7,10 @@ synstructure::decl_derive!([AxdrSequence, attributes(
     debug_derive,
     default,
     optional,
+    tag,
 )] => derive_axdr_sequence);
 
 synstructure::decl_derive!([ToAxdrSequence, attributes(
     debug_derive,
+    tag,
 )] => derive_toaxdr_sequence);

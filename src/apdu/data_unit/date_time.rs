@@ -10,7 +10,7 @@ pub struct DateTime {
     hour: Unsigned,
     minute: Unsigned,
     second: Unsigned,
-    milliseconds: LongUnsigned
+    milliseconds: LongUnsigned,
 }
 
 #[derive(Debug, AxdrSequence, ToAxdrSequence)]
@@ -18,14 +18,14 @@ pub struct Date {
     year: LongUnsigned,
     month: Unsigned,
     day_of_month: Unsigned,
-    day_of_week: Unsigned
+    day_of_week: Unsigned,
 }
 
 #[derive(Debug, AxdrSequence, ToAxdrSequence)]
 pub struct Time {
     hour: Unsigned,
     minute: Unsigned,
-    second: Unsigned
+    second: Unsigned,
 }
 
 #[derive(Debug, AxdrSequence, ToAxdrSequence)]
@@ -36,12 +36,12 @@ pub struct DateTimeS {
     day_of_week: Unsigned,
     hour: Unsigned,
     minute: Unsigned,
-    second: Unsigned
+    second: Unsigned,
 }
 
 mod tests {
     use super::*;
-    use asn1_type::traits::{ToAxdr, FromAxdr};
+    use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_date_time_to_axdr() {
@@ -53,10 +53,13 @@ mod tests {
             hour: 0x06,
             minute: 0x21,
             second: 0x10,
-            milliseconds: 0x1234
+            milliseconds: 0x1234,
         };
         let axdr = date.to_axdr_vec().unwrap();
-        assert_eq!(axdr, [0x07, 0xe6, 0x01, 0x01, 0x01, 0x06, 0x21, 0x10, 0x12, 0x34]);
+        assert_eq!(
+            axdr,
+            [0x07, 0xe6, 0x01, 0x01, 0x01, 0x06, 0x21, 0x10, 0x12, 0x34]
+        );
     }
 
     #[test]
@@ -79,7 +82,7 @@ mod tests {
             year: 2022,
             month: 1,
             day_of_month: 1,
-            day_of_week: 1
+            day_of_week: 1,
         };
         let axdr = date.to_axdr_vec().unwrap();
         assert_eq!(axdr, [0x07, 0xe6, 0x01, 0x01, 0x01]);

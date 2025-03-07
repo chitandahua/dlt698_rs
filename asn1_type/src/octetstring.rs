@@ -115,7 +115,7 @@ impl<'a> FromAxdr<'a> for OctetString<'a> {
 
 impl ToAxdr for OctetString<'_> {
     fn to_axdr_len(&self) -> Result<usize> {
-        UnsignedInteger::from_u64(self.as_ref().len() as u64).to_axdr_len() // TODO
+        Ok(UnsignedInteger::from_u64(self.as_ref().len() as u64).to_axdr_len()? + self.as_ref().len()) // TODO
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
@@ -130,7 +130,7 @@ impl ToAxdr for OctetString<'_> {
 
 impl ToAxdr for &'_ [u8] {
     fn to_axdr_len(&self) -> Result<usize> {
-        UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()
+        Ok(UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()? + self.len())
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

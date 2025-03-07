@@ -1,7 +1,7 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-    parse_quote, spanned::Spanned, Attribute, Ident, Lifetime, Meta, WherePredicate
+    parse_quote, spanned::Spanned, Attribute, Ident, Lifetime, Meta, WherePredicate, LitInt
 };
 
 fn get_attribute_meta(attr: &Attribute) -> Result<TokenStream, syn::Error> {
@@ -14,6 +14,15 @@ fn get_attribute_meta(attr: &Attribute) -> Result<TokenStream, syn::Error> {
             "Invalid error attribute format",
         ))
     }
+}
+
+fn get_tag_attribute(attrs: &[syn::Attribute]) -> Option<u8> {
+    attrs.iter()
+        .find(|attr| attr.path().is_ident("tag"))
+        .and_then(|attr| {
+            let lit: LitInt = attr.parse_args().ok()?;
+            lit.base10_parse::<u8>().ok()
+        })
 }
 
 pub fn derive_axdr_sequence(s: synstructure::Structure) -> proc_macro2::TokenStream {
@@ -62,34 +71,40 @@ pub fn derive_axdr_sequence(s: synstructure::Structure) -> proc_macro2::TokenStr
         }
         // TODO
         syn::Data::Enum(_) => {
-            //s.variants_mut().iter().binding_name(|bi, _i| bi.binding.clone().unwrap());
-            let arms = s.variants().iter().map(|v| {
-                //v.binding_name(|bi, _i| bi.binding.clone().unwrap());
-                let pat = v.pat();
-                let body = v.each(|bi| quote! {
-                    let (bytes, #bi) = FromAxdr::from_axdr(bytes)?;
-                });
-
+            // 为每个枚举变体生成匹配分支
+            let variants = s.variants().iter().map(|variant| {
+                let pat = variant.pat();
+                let bindings_extraction = variant.bindings().iter().map(|bi| {
+                    quote! {
+                        let (bytes, #bi) = FromAxdr::from_axdr(bytes)?;
+                    }
+                }).collect::<Vec<_>>();
+                
+                // 解析 #[tag(n)] 属性
+                let tag_value = get_tag_attribute(&variant.ast().attrs)
+                    .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", variant.ast().ident));
+                
                 quote! {
-                    // v.ast().fields.type
-                    tag if tag == <Self as Choice>::tag().0 as u8 => {
-                        #body
+                    #tag_value => {
+                        #(#bindings_extraction)*
                         Ok((bytes, #pat))
                     }
                 }
-            });
-
+            }).collect::<Vec<_>>();
+            
             quote! {
-                if bytes.is_empty() {
-                    return Err(asn1_rs::Error::NomError(nom::Err::Incomplete(nom::Needed::Size(1))).into());
-                }
-
-                let (bytes, tag) = nom::number::complete::be_u8(bytes)
-                    .map_err(|_| asn1_rs::Error::InvalidTag)?;
-
-                match tag {
-                    #(#arms),*
-                    _ => Err(asn1_rs::Error::InvalidTag.into())
+                fn from_axdr(bytes: &#lifetime [u8]) -> asn1_rs::ParseResult<#lifetime, Self, #error> {
+                    if bytes.is_empty() {
+                        return Err(asn1_rs::Error::NomError(nom::Err::Incomplete(nom::Needed::Size(1))).into());
+                    }
+                    
+                    let (bytes, tag) = nom::number::complete::be_u8(bytes)
+                        .map_err(|_| asn1_rs::Error::InvalidTag)?;
+                        
+                    match tag {
+                        #(#variants)*
+                        _ => Err(asn1_rs::Error::InvalidTag.into())
+                    }
                 }
             }
         }
@@ -98,7 +113,6 @@ pub fn derive_axdr_sequence(s: synstructure::Structure) -> proc_macro2::TokenStr
 
     let ts = s.gen_impl(quote! {
         use asn1_type::traits::FromAxdr;
-        use asn1_type::choice::Choice;
 
         gen impl<#lifetime> FromAxdr<#lifetime, #error> for @Self where #(#whs)+* {
             fn from_axdr(bytes: &#lifetime [u8]) -> asn1_rs::ParseResult<#lifetime, Self, #error> {
@@ -169,11 +183,12 @@ fn gen_write_axdr_header(s: &mut synstructure::Structure) -> TokenStream {
             //s.variants_mut().iter().binding_name(|bi, _i| bi.ident.clone().unwrap());
             let body = s.variants().iter().map(|variant| {
                 let pat = variant.pat();
+                let tag_value = get_tag_attribute(&variant.ast().attrs)
+                    .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", variant.ast().ident));
                 
                 quote! {
                     #pat => {
-                        let tag = <Self as Choice>::tag();
-                        writer.write_all(&[tag.0 as u8])?;
+                        writer.write_all(&[tag_value])?;
                         Ok(1)
                     }
                 }
@@ -197,6 +212,7 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
             // 使用 each 方法遍历所有字段绑定
             let field_names = &ds.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
             let write_instructions = field_names.iter().fold(Vec::new(), |mut instrs, field| {
+                instrs.push(quote! {num_bytes += self.#field.write_axdr_header(writer)?;});
                 instrs.push(quote! {num_bytes += self.#field.write_axdr_content(writer)?;});
                 instrs
             });
@@ -252,7 +268,6 @@ pub fn derive_toaxdr_sequence(mut s: synstructure::Structure) -> proc_macro2::To
 
     let ts = s.gen_impl(quote! {
         use asn1_type::traits::ToAxdr;
-        use asn1_type::choice::Choice;
 
         gen impl ToAxdr for @Self {
             #impl_to_axdr_len

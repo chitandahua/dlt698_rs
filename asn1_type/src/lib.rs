@@ -2,14 +2,15 @@ use octetstring::FixedOctetString;
 
 mod bitstring;
 mod boolean;
-pub mod choice;
 mod enumerated;
 mod integer;
 mod octetstring;
 mod strings;
-mod tag;
 pub mod traits;
 mod unsigned_integer;
+
+mod sequence;
+pub use sequence::SequenceOf;
 
 #[inline]
 pub fn is_highest_bit_set(bytes: &[u8]) -> bool {

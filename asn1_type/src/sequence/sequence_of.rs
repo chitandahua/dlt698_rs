@@ -1,0 +1,1 @@
+pub type SequenceOf<T> = Vec<T>;
