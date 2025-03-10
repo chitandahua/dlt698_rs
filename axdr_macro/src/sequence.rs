@@ -18,14 +18,17 @@ fn get_attribute_meta(attr: &Attribute) -> Result<TokenStream, syn::Error> {
 
 fn get_tag_attribute(attrs: &[syn::Attribute]) -> Option<u8> {
     attrs.iter()
-        .find(|attr| attr.path().is_ident("tag"))
+        .find(|attr| {
+            eprintln!("{:?}", attr.path());
+            attr.path().is_ident("tag")
+        })
         .and_then(|attr| {
             let lit: LitInt = attr.parse_args().ok()?;
             lit.base10_parse::<u8>().ok()
         })
 }
 
-pub fn derive_axdr_sequence(s: synstructure::Structure) -> proc_macro2::TokenStream {
+pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::TokenStream {
     let ast = s.ast();
 
     let debug_derive = ast.attrs.iter().any(|attr| {
@@ -71,8 +74,8 @@ pub fn derive_axdr_sequence(s: synstructure::Structure) -> proc_macro2::TokenStr
         }
         // TODO
         syn::Data::Enum(_) => {
-            // 为每个枚举变体生成匹配分支
-            let variants = s.variants().iter().map(|variant| {
+            let variants = s.variants_mut().iter_mut().map(|variant| {
+                variant.bind_with(|_| synstructure::BindStyle::Move);
                 let pat = variant.pat();
                 let bindings_extraction = variant.bindings().iter().map(|bi| {
                     quote! {
@@ -142,26 +145,15 @@ fn gen_to_axdr_len(s: &mut synstructure::Structure) -> TokenStream {
             }
         },
         syn::Data::Enum(_) => {
-            //s.variants_mut().iter().binding_name(|bi, _i| bi.ident.clone().unwrap());
-            let variants = s.variants().iter().map(|variant| {
-                let pat = variant.pat();
-                //variant.binding_name(|bi, _i| bi.ident.clone().unwrap());
-                let len_expr = variant.fold(quote!(1), |acc, bi| {
-                    quote! { #acc + ToAxdr::to_axdr_len(#bi)? }
-                });
-                
-                quote! {
-                    #pat => {
-                        Ok(#len_expr)  // 包含1字节的标签
-                    }
-                }
-            }).collect::<Vec<_>>();
+            let body = s.fold(quote! {1}, |acc, bi|
+                quote!(#acc + #bi.to_axdr_len()?)
+            );
             
             quote! {
                 fn to_axdr_len(&self) -> asn1_rs::Result<usize> {
-                    match self {
-                        #(#variants),*
-                    }
+                    Ok(match self {
+                        #body
+                    })
                 }
             }
         },
@@ -180,25 +172,21 @@ fn gen_write_axdr_header(s: &mut synstructure::Structure) -> TokenStream {
             }
         }
         syn::Data::Enum(_) => {
-            //s.variants_mut().iter().binding_name(|bi, _i| bi.ident.clone().unwrap());
-            let body = s.variants().iter().map(|variant| {
-                let pat = variant.pat();
-                let tag_value = get_tag_attribute(&variant.ast().attrs)
-                    .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", variant.ast().ident));
+            let body = s.each_variant(|v| {
+                let tag_value = get_tag_attribute(&v.ast().attrs)
+                    .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", v.ast().ident));
                 
                 quote! {
-                    #pat => {
-                        writer.write_all(&[tag_value])?;
-                        Ok(1)
-                    }
-                }
+                    writer.write_all(&[#tag_value])?;
+                }   
             });
 
             quote! {
                 fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> asn1_rs::SerializeResult<usize> {
                     match self {
-                        #(#body),*
+                        #body
                     }
+                    Ok(1)
                 }
             }
         }
@@ -226,26 +214,20 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
             }
         },
         syn::Data::Enum(_) => {
-            let variants = s.variants().iter().map(|variant| {
-                let pat = variant.pat();
-                let field_writes = variant.each(|bi| quote! {
-                    num_bytes += ToAxdr::write_axdr(#bi, writer)?;
-                });
-                
+            let body = s.each(|bi|
                 quote! {
-                    #pat => {
-                        let mut num_bytes = 0;
-                        #field_writes
-                        Ok(num_bytes)
-                    }
+                    num_bytes += #bi.write_axdr_header(writer)?;
+                    num_bytes += #bi.write_axdr_content(writer)?;
                 }
-            }).collect::<Vec<_>>();
+            );
             
             quote! {
                 fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_rs::SerializeResult<usize> {
+                    let mut num_bytes = 0;
                     match self {
-                        #(#variants),*
+                        #body
                     }
+                    Ok(num_bytes)
                 }
             }
         },
