@@ -7,13 +7,14 @@ impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
         let len = int.as_u64()? as usize; // TODO BigInt?
 
-        if bytes.len() < len {
-            return Err(asn1_rs::Err::Error(Error::InvalidLength));
-        }
+        // 不能简单的用std::mem::size_of 比如Data...
+        //if bytes.len() < len * std::mem::size_of::<T>()   {
+        //    return Err(asn1_rs::Err::Error(Error::InvalidLength));
+        //}
 
         let mut vec = Vec::new();
         let mut bytes = bytes;
-        while !bytes.is_empty() {
+        while vec.len() < len {
             let (b, t) = T::from_axdr(bytes)?;
             vec.push(t);
             bytes = b;
@@ -43,6 +44,8 @@ impl<T> ToAxdr for Vec<T> where T: ToAxdr {
 }
 
 mod tests {
+    use super::*;
+    use crate::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_vec_to_axdr() {

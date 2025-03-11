@@ -4,7 +4,7 @@ mod utf8string;
 mod visiblestring;
 
 pub use utf8string::*;
-//pub use visiblestring::*;
+pub use visiblestring::*;
 
 use asn1_rs::Result;
 

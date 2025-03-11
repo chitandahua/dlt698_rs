@@ -42,8 +42,7 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
     let lfts: Vec<_> = ast.generics.lifetimes().collect();
     let mut whs = Vec::new();
     if !lfts.is_empty() {
-        let lft = Lifetime::new("'axdr", Span::call_site());
-        let wh: WherePredicate = parse_quote! { #lft: #(#lfts)+* };
+        let wh: WherePredicate = parse_quote! { #lifetime: #(#lfts)+* };
         whs.push(wh);
     };
 
@@ -77,10 +76,11 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
             let variants = s.variants().iter().map(|variant| {
                 let pat = variant.pat();
                 let bindings = variant.bindings().iter().map(|b| {
-                    let ty = b.ast().ty.clone();
+                    //let ty = b.ast().ty.clone();
                     let name = b.pat();
                     quote! {
-                        let (bytes, #name) = <#ty>::from_axdr(bytes)?;
+                        //let (bytes, #name) = <#ty>::from_axdr(bytes)?; // ty里面带生命周期会有问题
+                        let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
                     }
                 }).collect::<Vec<_>>();
 

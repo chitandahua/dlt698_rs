@@ -1,13 +1,42 @@
 use super::attribute::{OAD, ROAD};
+use asn1_type::{Null, SequenceOf};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum CSD {
+pub enum CSD {
     #[tag(0)]
     Oad(OAD),
     #[tag(1)]
     Road(ROAD),
 }
+
+#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
+pub enum RSD {
+    #[tag(0)]
+    Null(Null),
+    //    #[tag(1)]
+    //    Selector1(Selector1),
+    //    #[tag(2)]
+    //    Selector2(Selector2),
+    //    #[tag(3)]
+    //    Selector3(Selector3),
+    //    #[tag(4)]
+    //    Selector4(Selector4),
+    //    #[tag(5)]
+    //    Selector5(Selector5),
+    //    #[tag(6)]
+    //    Selector6(Selector6),
+    //    #[tag(7)]
+    //    Selector7(Selector7),
+    //    #[tag(8)]
+    //    Selector8(Selector8),
+    //    #[tag(9)]
+    //    Selector9(Selector9),
+    //    #[tag(10)]
+    //    Selector10(Selector10),
+}
+
+pub type RCSD = SequenceOf<CSD>;
 
 mod tests {
     use super::*;

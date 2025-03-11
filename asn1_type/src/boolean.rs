@@ -1,6 +1,7 @@
 use super::traits::{FromAxdr, ToAxdr};
-use asn1_rs::Boolean;
 use asn1_rs::{ParseResult, Result, SerializeResult};
+
+pub type Boolean = asn1_rs::Boolean;
 
 impl FromAxdr<'_> for Boolean {
     fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {

@@ -1,7 +1,7 @@
 use asn1_type::{LongUnsigned, Unsigned};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
-#[derive(Debug, AxdrSequence, ToAxdrSequence)]
+#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct DateTime {
     year: LongUnsigned,
     month: Unsigned,
@@ -13,7 +13,7 @@ pub struct DateTime {
     milliseconds: LongUnsigned,
 }
 
-#[derive(Debug, AxdrSequence, ToAxdrSequence)]
+#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct Date {
     year: LongUnsigned,
     month: Unsigned,
@@ -21,22 +21,55 @@ pub struct Date {
     day_of_week: Unsigned,
 }
 
-#[derive(Debug, AxdrSequence, ToAxdrSequence)]
+#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct Time {
     hour: Unsigned,
     minute: Unsigned,
     second: Unsigned,
 }
 
-#[derive(Debug, AxdrSequence, ToAxdrSequence)]
+#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct DateTimeS {
     year: LongUnsigned,
     month: Unsigned,
-    day_of_month: Unsigned,
-    day_of_week: Unsigned,
+    day: Unsigned,
     hour: Unsigned,
     minute: Unsigned,
     second: Unsigned,
+}
+
+//impl From<NaiveDateTime> for DateTime {
+//    fn from(value: NaiveDateTime) -> Self {
+//        Self {
+//            year: value.year(),
+//            month: value.month(),
+//            day_of_month: value.day(),
+//            day_of_week: value.weekday().number_from_monday(),
+//            hour: value.hour(),
+//            minute: value.minute(),
+//            second: value.second(),
+//        }
+//    }
+//}
+
+impl DateTimeS {
+    pub fn new(
+        year: LongUnsigned,
+        month: Unsigned,
+        day: Unsigned,
+        hour: Unsigned,
+        minute: Unsigned,
+        second: Unsigned,
+    ) -> Self {
+        Self {
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+        }
+    }
 }
 
 mod tests {

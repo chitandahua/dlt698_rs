@@ -1,11 +1,28 @@
 use octetstring::FixedOctetString;
 
 mod bitstring;
+pub use bitstring::BitString;
+
 mod boolean;
+pub use boolean::Boolean;
+
 mod enumerated;
+pub use enumerated::Enumerated;
+
 mod integer;
+pub use integer::Integer;
+
+mod null;
+pub use null::Null;
+
 mod octetstring;
+pub use octetstring::OctetString;
+
+mod optional;
+
 mod strings;
+pub use strings::*;
+
 pub mod traits;
 mod unsigned_integer;
 
