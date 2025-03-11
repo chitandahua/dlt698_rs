@@ -72,42 +72,35 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
                 Ok((bytes, Self { #(#field_names),* }))
             }
         }
-        // TODO
         syn::Data::Enum(_) => {
-            let variants = s.variants_mut().iter_mut().map(|variant| {
-                variant.bind_with(|_| synstructure::BindStyle::Move);
+            s.bind_with(|_| synstructure::BindStyle::Move);
+            let variants = s.variants().iter().map(|variant| {
                 let pat = variant.pat();
-                let bindings_extraction = variant.bindings().iter().map(|bi| {
+                let bindings = variant.bindings().iter().map(|b| {
+                    let ty = b.ast().ty.clone();
+                    let name = b.pat();
                     quote! {
-                        let (bytes, #bi) = FromAxdr::from_axdr(bytes)?;
+                        let (bytes, #name) = <#ty>::from_axdr(bytes)?;
                     }
                 }).collect::<Vec<_>>();
-                
-                // 解析 #[tag(n)] 属性
+
                 let tag_value = get_tag_attribute(&variant.ast().attrs)
-                    .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", variant.ast().ident));
-                
+                        .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", variant.ast().ident));
+
                 quote! {
                     #tag_value => {
-                        #(#bindings_extraction)*
+                        #(#bindings)*
                         Ok((bytes, #pat))
                     }
                 }
             }).collect::<Vec<_>>();
             
             quote! {
-                fn from_axdr(bytes: &#lifetime [u8]) -> asn1_rs::ParseResult<#lifetime, Self, #error> {
-                    if bytes.is_empty() {
-                        return Err(asn1_rs::Error::NomError(nom::Err::Incomplete(nom::Needed::Size(1))).into());
-                    }
+                let (bytes, tag) = u8::from_axdr(bytes)?;
                     
-                    let (bytes, tag) = nom::number::complete::be_u8(bytes)
-                        .map_err(|_| asn1_rs::Error::InvalidTag)?;
-                        
-                    match tag {
-                        #(#variants)*
-                        _ => Err(asn1_rs::Error::InvalidTag.into())
-                    }
+                match tag {
+                    #(#variants)*
+                    _ => Err(asn1_rs::Error::InvalidTag.into())
                 }
             }
         }
