@@ -52,3 +52,9 @@ pub type Float64 = FixedOctetString<8>;
 //type Date = FixedOctetString<5>;
 //type Time = FixedOctetString<3>;
 //type DateTimes = FixedOctetString<7>;
+
+// 沿用asn1-rs中的类型
+pub type Error = asn1_rs::Error;
+pub type ParseResult<'a, T, E = Error> = asn1_rs::ParseResult<'a, T, E>;
+pub type Result<T, E = Error> = asn1_rs::Result<T, E>;
+pub type SerializeResult<T> = asn1_rs::SerializeResult<T>;

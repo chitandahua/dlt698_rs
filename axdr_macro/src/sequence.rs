@@ -19,7 +19,6 @@ fn get_attribute_meta(attr: &Attribute) -> Result<TokenStream, syn::Error> {
 fn get_tag_attribute(attrs: &[syn::Attribute]) -> Option<u8> {
     attrs.iter()
         .find(|attr| {
-            eprintln!("{:?}", attr.path());
             attr.path().is_ident("tag")
         })
         .and_then(|attr| {
@@ -54,7 +53,7 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
                 .path()
                 .is_ident(&Ident::new("error", Span::call_site()))
         })
-        .map_or(quote! { asn1_rs::Error }, |attr| {
+        .map_or(quote! { asn1_type::Error }, |attr| {
             get_attribute_meta(attr).expect("Invalid error attribute format")
         });
 
@@ -100,7 +99,7 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
                     
                 match tag {
                     #(#variants)*
-                    _ => Err(asn1_rs::Error::InvalidTag.into())
+                    _ => Err(asn1_type::Error::InvalidTag.into())
                 }
             }
         }
@@ -111,7 +110,7 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
         use asn1_type::traits::FromAxdr;
 
         gen impl<#lifetime> FromAxdr<#lifetime, #error> for @Self where #(#whs)+* {
-            fn from_axdr(bytes: &#lifetime [u8]) -> asn1_rs::ParseResult<#lifetime, Self, #error> {
+            fn from_axdr(bytes: &#lifetime [u8]) -> asn1_type::ParseResult<#lifetime, Self, #error> {
                 #fn_content
             }
         }
@@ -132,7 +131,7 @@ fn gen_to_axdr_len(s: &mut synstructure::Structure) -> TokenStream {
             });
             
             quote! {
-                fn to_axdr_len(&self) -> asn1_rs::Result<usize> {
+                fn to_axdr_len(&self) -> asn1_type::Result<usize> {
                     Ok(#len_expr)
                 }
             }
@@ -143,7 +142,7 @@ fn gen_to_axdr_len(s: &mut synstructure::Structure) -> TokenStream {
             );
             
             quote! {
-                fn to_axdr_len(&self) -> asn1_rs::Result<usize> {
+                fn to_axdr_len(&self) -> asn1_type::Result<usize> {
                     Ok(match self {
                         #body
                     })
@@ -159,7 +158,7 @@ fn gen_write_axdr_header(s: &mut synstructure::Structure) -> TokenStream {
         syn::Data::Struct(_) => {
             // 结构体不需要写入头部
             quote! {
-                fn write_axdr_header(&self, _writer: &mut dyn std::io::Write) -> asn1_rs::SerializeResult<usize> {
+                fn write_axdr_header(&self, _writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
                     Ok(0)
                 }
             }
@@ -175,7 +174,7 @@ fn gen_write_axdr_header(s: &mut synstructure::Structure) -> TokenStream {
             });
 
             quote! {
-                fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> asn1_rs::SerializeResult<usize> {
+                fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
                     match self {
                         #body
                     }
@@ -199,7 +198,7 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
             });
             
             quote! {
-                fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_rs::SerializeResult<usize> {
+                fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
                     let mut num_bytes = 0;
                     #(#write_instructions)*
                     Ok(num_bytes)
@@ -215,7 +214,7 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
             );
             
             quote! {
-                fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_rs::SerializeResult<usize> {
+                fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
                     let mut num_bytes = 0;
                     match self {
                         #body

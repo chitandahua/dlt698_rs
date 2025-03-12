@@ -39,8 +39,6 @@ pub enum RSD {
 pub type RCSD = SequenceOf<CSD>;
 
 mod tests {
-    use super::*;
-    use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_csd_to_axdr() {

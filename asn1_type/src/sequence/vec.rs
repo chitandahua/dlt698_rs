@@ -1,6 +1,6 @@
 use crate::traits::{FromAxdr, ToAxdr};
 use crate::unsigned_integer::UnsignedInteger;
-use asn1_rs::{Error, SerializeResult};
+use asn1_rs::SerializeResult;
 
 impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
     fn from_axdr(bytes: &'a [u8]) -> asn1_rs::ParseResult<'a, Self> {
@@ -44,8 +44,6 @@ impl<T> ToAxdr for Vec<T> where T: ToAxdr {
 }
 
 mod tests {
-    use super::*;
-    use crate::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_vec_to_axdr() {

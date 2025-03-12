@@ -18,7 +18,7 @@ impl ToAxdr for Null {
         Ok(0)
     }
 
-    fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
+    fn write_axdr_content(&self, _writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
         Ok(0)
     }
 }

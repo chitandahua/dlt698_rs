@@ -1,4 +1,3 @@
-use asn1_rs::{Error, ParseResult, Result, SerializeResult};
 use asn1_type::traits::{FromAxdr, ToAxdr};
 use asn1_type::{
     BitString, Float32, Float64, Long64, Long64Unsigned, Null, Utf8String, VisibleString,
@@ -7,6 +6,7 @@ use asn1_type::{
     Boolean, DoubleLong, DoubleLongUnsigned, Enumerated, Integer, Long, LongUnsigned, OctetString,
     SequenceOf, Unsigned,
 };
+use asn1_type::{Error, ParseResult, Result, SerializeResult};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 mod com;
@@ -129,7 +129,7 @@ pub enum Data<'a> {
 }
 
 impl<'a> FromAxdr<'a> for Box<Data<'a>> {
-    fn from_axdr(bytes: &'a [u8]) -> asn1_rs::ParseResult<'a, Self, asn1_rs::Error> {
+    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self, Error> {
         let (bytes, data) = Data::from_axdr(bytes)?;
         Ok((bytes, Box::new(data)))
     }

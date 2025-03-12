@@ -1,5 +1,4 @@
 use super::{Region, TSA};
-use asn1_type::traits::FromAxdr;
 use asn1_type::{LongUnsigned, SequenceOf, Unsigned};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 

@@ -44,8 +44,6 @@ pub struct Region<'a> {
 }
 
 mod tests {
-    use super::*;
-    use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_ti_unit_to_axdr() {

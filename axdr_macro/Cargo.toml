@@ -11,5 +11,4 @@ synstructure = "0"
 quote = "1"
 syn = "2"
 proc-macro2 = "1"
-asn1-rs = "0"
 asn1_type = { path = "../asn1_type" }
