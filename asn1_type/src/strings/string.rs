@@ -1,7 +1,7 @@
 use crate::strings::Utf8String;
 use crate::traits::{FromAxdr, ToAxdr};
 use crate::unsigned_integer::UnsignedInteger;
-use asn1_rs::{ParseResult, Result, SerializeResult};
+use crate::{ParseResult, Result, SerializeResult};
 
 impl FromAxdr<'_> for String {
     fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {

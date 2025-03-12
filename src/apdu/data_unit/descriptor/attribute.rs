@@ -33,6 +33,8 @@ impl ROAD {
 }
 
 mod tests {
+    use super::*;
+    use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_oad_to_axdr() {

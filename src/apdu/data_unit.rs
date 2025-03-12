@@ -28,7 +28,7 @@ mod ms;
 pub use ms::MS;
 
 mod region;
-pub use region::{Region, TI};
+pub use region::{Region, TiUnit, TI};
 
 mod security;
 pub use security::{MAC, RN, SID, SIDMAC};
@@ -113,7 +113,7 @@ pub enum Data<'a> {
     #[tag(89)]
     ScalerUnit(ScalerUnit<'a>),
     #[tag(90)]
-    RSD(RSD),
+    RSD(RSD<'a>),
     #[tag(91)]
     CSD(CSD),
     #[tag(92)]
@@ -209,7 +209,35 @@ mod tests {
     }
 
     #[test]
-    fn test_data_combine_to_axdr() {}
+    fn test_data_combine_to_axdr() {
+        let addr = Data::TSA(TSA::new(&[0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]));
+        let date_time_1 = Data::DateTimeS(DateTimeS::new(2023, 3, 4, 0, 0, 0));
+        let date_time_2 = Data::DateTimeS(DateTimeS::new(2023, 3, 4, 21, 2, 3));
+        let date_time_3 = Data::DateTimeS(DateTimeS::new(2023, 3, 3, 23, 59, 0));
+
+        let frozen = Data::Array(vec![
+            Data::DateTimeS(DateTimeS::new(2023, 3, 4, 0, 0, 0)),
+            Data::Array(vec![
+                Data::DoubleLongUnsigned(2000),
+                Data::DoubleLongUnsigned(500),
+                Data::DoubleLongUnsigned(400),
+                Data::DoubleLongUnsigned(500),
+                Data::DoubleLongUnsigned(600),
+            ]),
+            Data::Array(vec![
+                Data::DoubleLongUnsigned(2000),
+                Data::DoubleLongUnsigned(500),
+                Data::DoubleLongUnsigned(400),
+                Data::DoubleLongUnsigned(500),
+                Data::DoubleLongUnsigned(600),
+            ]),
+        ]);
+
+        let data = Data::Array(vec![addr, date_time_1, date_time_2, date_time_3, frozen]);
+
+        let axdr = data.to_axdr_vec().unwrap();
+        assert_eq!(hex::encode(axdr), "01055507050000000000011c07e703040000001c07e703041502031c07e70303173b0001031c07e70304000000010506000007d006000001f4060000019006000001f40600000258010506000007d006000001f4060000019006000001f40600000258");
+    }
 
     #[test]
     fn test_data_combine_from_axdr() {

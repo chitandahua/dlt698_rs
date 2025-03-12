@@ -1,6 +1,6 @@
 use super::is_highest_bit_set;
 use super::traits::{FromAxdr, ToAxdr};
-use asn1_rs::{Error, ParseResult, Result, SerializeResult};
+use crate::{Error, ParseResult, Result, SerializeResult};
 use std::borrow::Cow;
 use std::io::Write;
 

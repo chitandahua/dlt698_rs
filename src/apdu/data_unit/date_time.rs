@@ -73,6 +73,8 @@ impl DateTimeS {
 }
 
 mod tests {
+    use super::*;
+    use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_date_time_to_axdr() {

@@ -6,7 +6,7 @@ mod visiblestring;
 pub use utf8string::*;
 pub use visiblestring::*;
 
-use asn1_rs::Result;
+use crate::Result;
 
 pub trait TestValidCharset {
     /// Check character set for this object type.
@@ -16,7 +16,7 @@ pub trait TestValidCharset {
 #[macro_export]
 macro_rules! asn1_axdr_string {
     (IMPL $name:ident, $sname:expr) => {
-        use asn1_rs::{Error, ParseResult, Result, SerializeResult};
+        use crate::{Error, ParseResult, Result, SerializeResult};
         use crate::traits::{FromAxdr, ToAxdr};
         use crate::unsigned_integer::UnsignedInteger;
 

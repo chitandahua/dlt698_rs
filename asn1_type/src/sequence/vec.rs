@@ -1,9 +1,9 @@
 use crate::traits::{FromAxdr, ToAxdr};
 use crate::unsigned_integer::UnsignedInteger;
-use asn1_rs::SerializeResult;
+use crate::{ParseResult, Result, SerializeResult};
 
 impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> asn1_rs::ParseResult<'a, Self> {
+    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
         let len = int.as_u64()? as usize; // TODO BigInt?
 
@@ -24,7 +24,7 @@ impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
 }
 
 impl<T> ToAxdr for Vec<T> where T: ToAxdr {
-    fn to_axdr_len(&self) -> asn1_rs::Result<usize> {
+    fn to_axdr_len(&self) -> Result<usize> {
         // 取第一个的长度  若空则为0
         let len: usize = if self.is_empty() { 0 } else { self[0].to_axdr_len()? } * self.len();
         Ok(UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()? + len)
@@ -44,6 +44,8 @@ impl<T> ToAxdr for Vec<T> where T: ToAxdr {
 }
 
 mod tests {
+    use super::*;
+    use crate::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_vec_to_axdr() {

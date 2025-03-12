@@ -1,5 +1,5 @@
 use super::traits::{FromAxdr, ToAxdr};
-use asn1_rs::{ParseResult, Result, SerializeResult};
+use crate::{ParseResult, Result, SerializeResult};
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Enumerated(pub u8); // 0-255

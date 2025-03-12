@@ -24,6 +24,12 @@ pub struct TI {
     interval: LongUnsigned,
 }
 
+impl TI {
+    pub fn new(unit: TiUnit, interval: LongUnsigned) -> Self {
+        Self { unit, interval }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub enum RegionType {
     #[tag(0)]
@@ -44,6 +50,8 @@ pub struct Region<'a> {
 }
 
 mod tests {
+    use super::*;
+    use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
     fn test_ti_unit_to_axdr() {

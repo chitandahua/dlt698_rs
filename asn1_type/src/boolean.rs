@@ -1,5 +1,5 @@
 use super::traits::{FromAxdr, ToAxdr};
-use asn1_rs::{ParseResult, Result, SerializeResult};
+use crate::{ParseResult, Result, SerializeResult};
 
 pub type Boolean = asn1_rs::Boolean;
 

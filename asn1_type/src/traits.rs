@@ -1,4 +1,4 @@
-use asn1_rs::{Error, ParseResult, Result, SerializeResult};
+use crate::{Error, ParseResult, Result, SerializeResult};
 use std::io::Write;
 
 //pub trait AxdrTag {

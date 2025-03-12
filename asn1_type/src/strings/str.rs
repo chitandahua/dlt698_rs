@@ -1,6 +1,6 @@
 use crate::traits::{FromAxdr, ToAxdr};
 use crate::unsigned_integer::UnsignedInteger;
-use asn1_rs::{Error, ParseResult, Result, SerializeResult};
+use crate::{Error, ParseResult, Result, SerializeResult};
 
 impl<'a> FromAxdr<'a> for &'a str {
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {

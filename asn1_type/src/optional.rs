@@ -1,5 +1,5 @@
 use super::traits::{FromAxdr, ToAxdr};
-use asn1_rs::{ParseResult, Result, SerializeResult};
+use crate::{ParseResult, Result, SerializeResult};
 use super::Boolean;
 
 impl<'a, T> FromAxdr<'a> for Option<T>

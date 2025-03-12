@@ -1,6 +1,6 @@
 use super::traits::{FromAxdr, ToAxdr};
 use super::unsigned_integer::UnsignedInteger;
-use asn1_rs::{Error, ParseResult, Result, SerializeResult};
+use crate::{Error, ParseResult, Result, SerializeResult};
 use core::convert::TryFrom;
 use std::array::TryFromSliceError;
 use std::borrow::Cow;
