@@ -28,7 +28,7 @@ mod ms;
 pub use ms::MS;
 
 mod region;
-pub use region::{Region, TiUnit, TI};
+pub use region::{Region, TI};
 
 mod security;
 pub use security::{MAC, RN, SID, SIDMAC};

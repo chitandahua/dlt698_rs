@@ -32,6 +32,7 @@ impl ROAD {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use asn1_type::traits::{FromAxdr, ToAxdr};

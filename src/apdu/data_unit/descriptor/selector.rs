@@ -1,5 +1,5 @@
 use super::attribute::{OAD, ROAD};
-use crate::apdu::data_unit::{Data, DateTimeS, TiUnit, MS, TI};
+use crate::apdu::data_unit::{Data, DateTimeS, MS, TI};
 use asn1_type::{Null, SequenceOf, Unsigned};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
@@ -102,8 +102,10 @@ pub struct Selector10<'a> {
 
 pub type RCSD = SequenceOf<CSD>;
 
+#[cfg(test)]
 mod tests {
     use super::*;
+    use crate::apdu::data_unit::region::TiUnit;
     use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]

@@ -46,6 +46,7 @@ where
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::traits::{FromAxdr, ToAxdr};
