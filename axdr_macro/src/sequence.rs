@@ -1,5 +1,5 @@
 use proc_macro2::{Span, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{
     parse_quote, spanned::Spanned, Attribute, Ident, Lifetime, LitInt, Meta, WherePredicate,
 };
@@ -58,19 +58,49 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
     // 区分结构体和枚举
     let fn_content = match &ast.data {
         syn::Data::Struct(ds) => {
-            let field_names = &ds.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
-            let field_extractions = field_names
-                .iter()
-                .map(|name| {
-                    quote! {
-                        let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
-                    }
-                })
-                .collect::<Vec<_>>();
+            match &ds.fields {
+                syn::Fields::Named(fields) => {
+                    let field_names = fields.named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+                    let field_extractions = field_names
+                        .iter()
+                        .map(|name| {
+                            quote! {
+                                let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
+                            }
+                        })
+                        .collect::<Vec<_>>();
 
-            quote! {
-                #(#field_extractions)*
-                Ok((bytes, Self { #(#field_names),* }))
+                    quote! {
+                        #(#field_extractions)*
+                        Ok((bytes, Self { #(#field_names),* }))
+                    }
+                }
+                syn::Fields::Unnamed(fields) => {
+                    // 为每个未命名字段创建临时变量名
+                    let field_vars = (0..fields.unnamed.len())
+                        .map(|i| format_ident!("field_{}", i))
+                        .collect::<Vec<_>>();
+
+                    // 生成字段提取代码
+                    let field_extractions = field_vars
+                        .iter()
+                        .map(|var| {
+                            quote! {
+                                let (bytes, #var) = FromAxdr::from_axdr(bytes)?;
+                            }
+                        })
+                        .collect::<Vec<_>>();
+
+                    quote! {
+                        #(#field_extractions)*
+                        Ok((bytes, Self(#(#field_vars),*)))
+                    }
+                }
+                syn::Fields::Unit => {
+                    quote! {
+                        Ok((bytes, Self))
+                    }
+                }
             }
         }
         syn::Data::Enum(_) => {
@@ -139,10 +169,10 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
 fn gen_to_axdr_len(s: &mut synstructure::Structure) -> TokenStream {
     match &s.ast().data {
         syn::Data::Struct(ds) => {
-            // 使用 fold 方法累积所有字段的长度
-            let field_names = &ds.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
-            let len_expr = field_names.iter().fold(quote!(0), |acc, name| {
-                quote! { #acc + self.#name.to_axdr_len()? }
+            let len_expr = ds.fields.members().fold(quote! {0}, |acc, field| {
+                quote! {
+                    #acc + self.#field.to_axdr_len()?
+                }
             });
 
             quote! {
@@ -204,8 +234,7 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
     match &s.ast().data {
         syn::Data::Struct(ds) => {
             // 使用 each 方法遍历所有字段绑定
-            let field_names = &ds.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
-            let write_instructions = field_names.iter().fold(Vec::new(), |mut instrs, field| {
+            let write_instructions = ds.fields.members().fold(Vec::new(), |mut instrs, field| {
                 instrs.push(quote! {num_bytes += self.#field.write_axdr_header(writer)?;});
                 instrs.push(quote! {num_bytes += self.#field.write_axdr_content(writer)?;});
                 instrs
