@@ -1,7 +1,7 @@
 use octetstring::FixedOctetString;
 
 mod bitstring;
-pub use bitstring::BitString;
+pub use bitstring::{BitString, FixedBitString};
 
 mod boolean;
 pub use boolean::Boolean;

@@ -1,7 +1,7 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-    parse_quote, spanned::Spanned, Attribute, Ident, Lifetime, Meta, WherePredicate, LitInt
+    parse_quote, spanned::Spanned, Attribute, Ident, Lifetime, LitInt, Meta, WherePredicate,
 };
 
 fn get_attribute_meta(attr: &Attribute) -> Result<TokenStream, syn::Error> {
@@ -17,10 +17,9 @@ fn get_attribute_meta(attr: &Attribute) -> Result<TokenStream, syn::Error> {
 }
 
 fn get_tag_attribute(attrs: &[syn::Attribute]) -> Option<u8> {
-    attrs.iter()
-        .find(|attr| {
-            attr.path().is_ident("tag")
-        })
+    attrs
+        .iter()
+        .find(|attr| attr.path().is_ident("tag"))
         .and_then(|attr| {
             let lit: LitInt = attr.parse_args().ok()?;
             lit.base10_parse::<u8>().ok()
@@ -36,7 +35,6 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
             .is_ident(&Ident::new("debug_derive", Span::call_site()))
     });
 
-    // 只支持struct enum
     let lifetime = Lifetime::new("'axdr", Span::call_site());
     let lfts: Vec<_> = ast.generics.lifetimes().collect();
     let mut whs = Vec::new();
@@ -61,10 +59,15 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
     let fn_content = match &ast.data {
         syn::Data::Struct(ds) => {
             let field_names = &ds.fields.iter().map(|f| &f.ident).collect::<Vec<_>>();
-            let field_extractions = field_names.iter().map(|name| quote! {
-                let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
-            }).collect::<Vec<_>>();
-            
+            let field_extractions = field_names
+                .iter()
+                .map(|name| {
+                    quote! {
+                        let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
+                    }
+                })
+                .collect::<Vec<_>>();
+
             quote! {
                 #(#field_extractions)*
                 Ok((bytes, Self { #(#field_names),* }))
@@ -72,31 +75,43 @@ pub fn derive_axdr_sequence(mut s: synstructure::Structure) -> proc_macro2::Toke
         }
         syn::Data::Enum(_) => {
             s.bind_with(|_| synstructure::BindStyle::Move);
-            let variants = s.variants().iter().map(|variant| {
-                let pat = variant.pat();
-                let bindings = variant.bindings().iter().map(|b| {
-                    //let ty = b.ast().ty.clone();
-                    let name = b.pat();
+            let variants = s
+                .variants()
+                .iter()
+                .map(|variant| {
+                    let pat = variant.pat();
+                    let bindings = variant
+                        .bindings()
+                        .iter()
+                        .map(|b| {
+                            //let ty = b.ast().ty.clone();
+                            let name = b.pat();
+                            quote! {
+                                //let (bytes, #name) = <#ty>::from_axdr(bytes)?; // ty里面带生命周期会有问题
+                                let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
+                            }
+                        })
+                        .collect::<Vec<_>>();
+
+                    let tag_value = get_tag_attribute(&variant.ast().attrs).unwrap_or_else(|| {
+                        panic!(
+                            "Missing #[tag(n)] attribute on variant {}",
+                            variant.ast().ident
+                        )
+                    });
+
                     quote! {
-                        //let (bytes, #name) = <#ty>::from_axdr(bytes)?; // ty里面带生命周期会有问题
-                        let (bytes, #name) = FromAxdr::from_axdr(bytes)?;
+                        #tag_value => {
+                            #(#bindings)*
+                            Ok((bytes, #pat))
+                        }
                     }
-                }).collect::<Vec<_>>();
+                })
+                .collect::<Vec<_>>();
 
-                let tag_value = get_tag_attribute(&variant.ast().attrs)
-                        .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", variant.ast().ident));
-
-                quote! {
-                    #tag_value => {
-                        #(#bindings)*
-                        Ok((bytes, #pat))
-                    }
-                }
-            }).collect::<Vec<_>>();
-            
             quote! {
                 let (bytes, tag) = u8::from_axdr(bytes)?;
-                    
+
                 match tag {
                     #(#variants)*
                     _ => Err(asn1_type::Error::InvalidTag.into())
@@ -129,18 +144,16 @@ fn gen_to_axdr_len(s: &mut synstructure::Structure) -> TokenStream {
             let len_expr = field_names.iter().fold(quote!(0), |acc, name| {
                 quote! { #acc + self.#name.to_axdr_len()? }
             });
-            
+
             quote! {
                 fn to_axdr_len(&self) -> asn1_type::Result<usize> {
                     Ok(#len_expr)
                 }
             }
-        },
+        }
         syn::Data::Enum(_) => {
-            let body = s.fold(quote! {1}, |acc, bi|
-                quote!(#acc + #bi.to_axdr_len()?)
-            );
-            
+            let body = s.fold(quote! {1}, |acc, bi| quote!(#acc + #bi.to_axdr_len()?));
+
             quote! {
                 fn to_axdr_len(&self) -> asn1_type::Result<usize> {
                     Ok(match self {
@@ -148,8 +161,8 @@ fn gen_to_axdr_len(s: &mut synstructure::Structure) -> TokenStream {
                     })
                 }
             }
-        },
-        _ => panic!("Only structs and enums are supported")
+        }
+        _ => panic!("Only structs and enums are supported"),
     }
 }
 
@@ -165,12 +178,13 @@ fn gen_write_axdr_header(s: &mut synstructure::Structure) -> TokenStream {
         }
         syn::Data::Enum(_) => {
             let body = s.each_variant(|v| {
-                let tag_value = get_tag_attribute(&v.ast().attrs)
-                    .unwrap_or_else(|| panic!("Missing #[tag(n)] attribute on variant {}", v.ast().ident));
-                
+                let tag_value = get_tag_attribute(&v.ast().attrs).unwrap_or_else(|| {
+                    panic!("Missing #[tag(n)] attribute on variant {}", v.ast().ident)
+                });
+
                 quote! {
                     writer.write_all(&[#tag_value])?;
-                }   
+                }
             });
 
             quote! {
@@ -196,7 +210,7 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
                 instrs.push(quote! {num_bytes += self.#field.write_axdr_content(writer)?;});
                 instrs
             });
-            
+
             quote! {
                 fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
                     let mut num_bytes = 0;
@@ -204,15 +218,15 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
                     Ok(num_bytes)
                 }
             }
-        },
+        }
         syn::Data::Enum(_) => {
-            let body = s.each(|bi|
+            let body = s.each(|bi| {
                 quote! {
                     num_bytes += #bi.write_axdr_header(writer)?;
                     num_bytes += #bi.write_axdr_content(writer)?;
                 }
-            );
-            
+            });
+
             quote! {
                 fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
                     let mut num_bytes = 0;
@@ -222,8 +236,8 @@ fn gen_write_axdr_content(s: &mut synstructure::Structure) -> TokenStream {
                     Ok(num_bytes)
                 }
             }
-        },
-        _ => panic!("Only structs and enums are supported")
+        }
+        _ => panic!("Only structs and enums are supported"),
     }
 }
 

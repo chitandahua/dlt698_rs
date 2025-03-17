@@ -76,3 +76,38 @@ pub struct COMDCB {
     stop_bits: StopBits,
     flow_control: FlowControl,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use asn1_type::traits::{FromAxdr, ToAxdr};
+
+    #[test]
+    fn test_comdcb_to_axdr() {
+        let com = COMDCB {
+            baudrate: BaudRate::B115200,
+            parity: Parity::Even,
+            data_bits: DataBits::Eight,
+            stop_bits: StopBits::One,
+            flow_control: FlowControl::None,
+        };
+
+        let axdr = com.to_axdr_vec().unwrap();
+        assert_eq!(axdr, [0x0a, 0x02, 0x08, 0x01, 0x00])
+    }
+
+    #[test]
+    fn test_comdcb_from_axdr() {
+        let com = COMDCB {
+            baudrate: BaudRate::B115200,
+            parity: Parity::Even,
+            data_bits: DataBits::Eight,
+            stop_bits: StopBits::One,
+            flow_control: FlowControl::None,
+        };
+
+        let axdr = [0x0a, 0x02, 0x08, 0x01, 0x00];
+        let (_byte, result) = COMDCB::from_axdr(&axdr).unwrap();
+        assert_eq!(result, com);
+    }
+}

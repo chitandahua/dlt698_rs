@@ -1,6 +1,6 @@
 use super::traits::{FromAxdr, ToAxdr};
-use crate::{ParseResult, Result, SerializeResult};
 use super::Boolean;
+use crate::{ParseResult, Result, SerializeResult};
 
 impl<'a, T> FromAxdr<'a> for Option<T>
 where
@@ -23,7 +23,10 @@ where
     T: ToAxdr,
 {
     fn to_axdr_len(&self) -> Result<usize> {
-        self.as_ref().map(|t| t.to_axdr_len()).unwrap_or(Ok(0)).map(|len| len + 1)
+        self.as_ref()
+            .map(|t| t.to_axdr_len())
+            .unwrap_or(Ok(0))
+            .map(|len| len + 1)
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

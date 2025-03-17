@@ -2,7 +2,10 @@ use crate::traits::{FromAxdr, ToAxdr};
 use crate::unsigned_integer::UnsignedInteger;
 use crate::{ParseResult, Result, SerializeResult};
 
-impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
+impl<'a, T> FromAxdr<'a> for Vec<T>
+where
+    T: FromAxdr<'a>,
+{
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
         let len = int.as_u64()? as usize; // TODO BigInt?
@@ -12,7 +15,7 @@ impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
         //    return Err(asn1_rs::Err::Error(Error::InvalidLength));
         //}
 
-        let mut vec = Vec::new();
+        let mut vec = Vec::with_capacity(len);
         let mut bytes = bytes;
         while vec.len() < len {
             let (b, t) = T::from_axdr(bytes)?;
@@ -23,10 +26,17 @@ impl<'a, T> FromAxdr<'a> for Vec<T> where T: FromAxdr<'a> {
     }
 }
 
-impl<T> ToAxdr for Vec<T> where T: ToAxdr {
+impl<T> ToAxdr for Vec<T>
+where
+    T: ToAxdr,
+{
     fn to_axdr_len(&self) -> Result<usize> {
         // 取第一个的长度  若空则为0
-        let len: usize = if self.is_empty() { 0 } else { self[0].to_axdr_len()? } * self.len();
+        let len: usize = if self.is_empty() {
+            0
+        } else {
+            self[0].to_axdr_len()?
+        } * self.len();
         Ok(UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()? + len)
     }
 
@@ -59,5 +69,4 @@ mod tests {
         let (_, v) = Vec::<u8>::from_axdr(&axdr).unwrap();
         assert_eq!(v, vec![1, 2, 3]);
     }
-
 }

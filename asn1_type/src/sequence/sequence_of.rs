@@ -3,7 +3,10 @@ pub type SequenceOf<T> = Vec<T>;
 use crate::traits::{FromAxdr, ToAxdr};
 use crate::{ParseResult, Result, SerializeResult};
 
-impl<'a, T, const N: usize> FromAxdr<'a> for [T; N] where T: FromAxdr<'a> {
+impl<'a, T, const N: usize> FromAxdr<'a> for [T; N]
+where
+    T: FromAxdr<'a>,
+{
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         let mut array = Vec::with_capacity(N);
         let mut bytes = bytes;
@@ -13,11 +16,19 @@ impl<'a, T, const N: usize> FromAxdr<'a> for [T; N] where T: FromAxdr<'a> {
             array.push(t);
             bytes = b;
         }
-        Ok((bytes, array.try_into().map_err(|_| asn1_rs::Error::InvalidLength)?))
+        Ok((
+            bytes,
+            array
+                .try_into()
+                .map_err(|_| asn1_rs::Error::InvalidLength)?,
+        ))
     }
 }
 
-impl<T, const N: usize> ToAxdr for [T; N] where T: ToAxdr {
+impl<T, const N: usize> ToAxdr for [T; N]
+where
+    T: ToAxdr,
+{
     fn to_axdr_len(&self) -> Result<usize> {
         Ok(self[0].to_axdr_len()? * N)
     }

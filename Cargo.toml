@@ -1,3 +1,6 @@
+[workspace]
+members = ["asn1_type", "axdr_macro"]
+
 [package]
 name = "dlt698_rs"
 version = "0.1.0"
