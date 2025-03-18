@@ -24,7 +24,9 @@ mod strings;
 pub use strings::*;
 
 pub mod traits;
+
 mod unsigned_integer;
+pub use unsigned_integer::UnsignedInteger;
 
 mod sequence;
 pub use sequence::SequenceOf;
