@@ -6,7 +6,7 @@ use asn1_type::FixedBitString;
 type ProtocolConformance = FixedBitString<64, 8>;
 type FunctionConformance = FixedBitString<128, 16>;
 
-enum ProtocolConformanceFlags {
+enum _ProtocolConformanceFlags {
     ApplicationAssociation = 0,
     GetNormal = 1,
     GetWithList = 2,
@@ -43,7 +43,7 @@ enum ProtocolConformanceFlags {
     ObjectPropertyID0SetAccess = 33,
 }
 
-enum FunctionConformanceFlags {
+enum _FunctionConformanceFlags {
     ActiveEnergyMetering = 0,
     BidirectionalActiveEnergyMetering = 1,
     ReactiveEnergyMetering = 2,

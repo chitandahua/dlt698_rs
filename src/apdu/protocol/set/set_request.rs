@@ -18,7 +18,7 @@ pub struct SetRequestNormalList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct SetRequestNormalAttribute<'a> {
+pub struct SetRequestNormalAttribute<'a> {
     oad: OAD,
     data: Data<'a>,
 }
@@ -31,7 +31,7 @@ pub struct SetThenGetRequestNormalList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct SetThenGetRequestNormalAttribute<'a> {
+pub struct SetThenGetRequestNormalAttribute<'a> {
     oad: OAD,
     data: Data<'a>,
     read_oad: OAD,
