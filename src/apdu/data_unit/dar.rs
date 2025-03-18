@@ -1,6 +1,6 @@
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
-#[derive(Debug, AxdrSequence, ToAxdrSequence)]
+#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub enum DAR {
     #[tag(0)]
     Success,
