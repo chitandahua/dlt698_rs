@@ -109,7 +109,7 @@ impl<'a> FromAxdr<'a> for BitString<'a> {
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         // TODO 最前面的Length为变长Integer的编码? 但是没有负数 没有补码。。。
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
-        let len = int.as_u64()? as usize; // TODO BigInt?
+        let len = int.as_usize()?;
 
         let bytes_num = bytes_number(len);
         let unused_bits = unused_bits(len);
@@ -137,7 +137,7 @@ impl ToAxdr for BitString<'_> {
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
         let bit_length = self.as_ref().len() * 8 - self.unused_bits as usize;
-        let int = UnsignedInteger::from_u64(bit_length as u64); // TODO
+        let int = UnsignedInteger::from_usize(bit_length);
         int.write_axdr(writer)
     }
 

@@ -60,7 +60,7 @@ macro_rules! asn1_axdr_string {
         impl<'a> FromAxdr<'a> for $name<'a> {
             fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
                 let (bytes, len) = UnsignedInteger::from_axdr(bytes)?;
-                let len = len.as_u64()? as usize; // TODO
+                let len = len.as_usize()?;
 
                 if bytes.len() < len {
                     return Err(asn1_rs::Err::Error(Error::InvalidLength));
@@ -75,7 +75,7 @@ macro_rules! asn1_axdr_string {
         impl ToAxdr for $name<'_> {
             fn to_axdr_len(&self) -> Result<usize> {
                 Ok(
-                    UnsignedInteger::from_u64(self.data.as_bytes().len() as u64).to_axdr_len()?
+                    UnsignedInteger::from_usize(self.data.as_bytes().len()).to_axdr_len()?
                         + self.data.as_bytes().len(),
                 )
             }
@@ -84,7 +84,7 @@ macro_rules! asn1_axdr_string {
                 &self,
                 writer: &mut dyn std::io::Write,
             ) -> SerializeResult<usize> {
-                UnsignedInteger::from_u64(self.data.as_bytes().len() as u64).write_axdr(writer)
+                UnsignedInteger::from_usize(self.data.as_bytes().len()).write_axdr(writer)
             }
 
             fn write_axdr_content(

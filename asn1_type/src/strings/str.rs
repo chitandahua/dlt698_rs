@@ -9,7 +9,7 @@ impl<'a> FromAxdr<'a> for &'a str {
         //Ok((bytes, s.as_ref()))
         //Ok((bytes, s.data.as_ref()))
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
-        let len = int.as_u64()? as usize;
+        let len = int.as_usize()?;
 
         if bytes.len() < len {
             return Err(asn1_rs::Err::Error(Error::InvalidLength));
@@ -23,11 +23,11 @@ impl<'a> FromAxdr<'a> for &'a str {
 
 impl ToAxdr for &'_ str {
     fn to_axdr_len(&self) -> Result<usize> {
-        UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()
+        UnsignedInteger::from_usize(self.len()).to_axdr_len()
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        UnsignedInteger::from_u64(self.len() as u64).write_axdr(writer)
+        UnsignedInteger::from_usize(self.len()).write_axdr(writer)
     }
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

@@ -86,6 +86,7 @@ impl_from_to!(u16, from_u16, as_u16);
 impl_from_to!(u32, from_u32, as_u32);
 impl_from_to!(u64, from_u64, as_u64);
 impl_from_to!(u128, from_u128, as_u128);
+impl_from_to!(usize, from_usize, as_usize);
 
 impl AsRef<[u8]> for UnsignedInteger<'_> {
     fn as_ref(&self) -> &[u8] {

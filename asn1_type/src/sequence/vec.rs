@@ -8,7 +8,7 @@ where
 {
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
-        let len = int.as_u64()? as usize; // TODO BigInt?
+        let len = int.as_usize()?; // TODO BigInt?
 
         // 不能简单的用std::mem::size_of 比如Data...
         //if bytes.len() < len * std::mem::size_of::<T>()   {
@@ -37,11 +37,11 @@ where
         } else {
             self[0].to_axdr_len()?
         } * self.len();
-        Ok(UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()? + len)
+        Ok(UnsignedInteger::from_usize(self.len()).to_axdr_len()? + len)
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        UnsignedInteger::from_u64(self.len() as u64).write_axdr(writer)
+        UnsignedInteger::from_usize(self.len()).write_axdr(writer)
     }
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
@@ -55,7 +55,6 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::traits::{FromAxdr, ToAxdr};
 
     #[test]

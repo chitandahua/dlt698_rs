@@ -103,7 +103,7 @@ impl<'a> From<&'a [u8]> for OctetString<'a> {
 impl<'a> FromAxdr<'a> for OctetString<'a> {
     fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
-        let len = int.as_u64()? as usize; // TODO BigInt?
+        let len = int.as_usize()?;
 
         if bytes.len() < len {
             return Err(asn1_rs::Err::Error(Error::InvalidLength));
@@ -115,15 +115,11 @@ impl<'a> FromAxdr<'a> for OctetString<'a> {
 
 impl ToAxdr for OctetString<'_> {
     fn to_axdr_len(&self) -> Result<usize> {
-        Ok(
-            UnsignedInteger::from_u64(self.as_ref().len() as u64).to_axdr_len()?
-                + self.as_ref().len(),
-        ) // TODO
+        Ok(UnsignedInteger::from_usize(self.as_ref().len()).to_axdr_len()? + self.as_ref().len())
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        UnsignedInteger::from_u64(self.as_ref().len() as u64).write_axdr(writer)
-        // TODO
+        UnsignedInteger::from_usize(self.as_ref().len()).write_axdr(writer)
     }
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
@@ -133,11 +129,11 @@ impl ToAxdr for OctetString<'_> {
 
 impl ToAxdr for &'_ [u8] {
     fn to_axdr_len(&self) -> Result<usize> {
-        Ok(UnsignedInteger::from_u64(self.len() as u64).to_axdr_len()? + self.len())
+        Ok(UnsignedInteger::from_usize(self.len()).to_axdr_len()? + self.len())
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        UnsignedInteger::from_u64(self.len() as u64).write_axdr(writer) // TODO
+        UnsignedInteger::from_usize(self.len()).write_axdr(writer) // TODO
     }
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

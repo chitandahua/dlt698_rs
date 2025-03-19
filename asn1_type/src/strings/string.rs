@@ -12,13 +12,13 @@ impl FromAxdr<'_> for String {
 
 impl ToAxdr for String {
     fn to_axdr_len(&self) -> Result<usize> {
-        UnsignedInteger::from_u64(self.len() as u64)
+        UnsignedInteger::from_usize(self.len())
             .to_axdr_len()
             .map(|len| len + self.len())
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        UnsignedInteger::from_u64(self.len() as u64).write_axdr(writer)
+        UnsignedInteger::from_usize(self.len()).write_axdr(writer)
     }
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

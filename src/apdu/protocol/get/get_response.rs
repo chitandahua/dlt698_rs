@@ -96,7 +96,7 @@ impl<'a> FromAxdr<'a> for AResultRecord<'a> {
             }
             1 => {
                 let (mut bytes, int) = UnsignedInteger::from_axdr(bytes)?;
-                let len = int.as_u64()? as usize;
+                let len = int.as_usize()?;
                 let mut record_rows = Vec::with_capacity(len);
 
                 while record_rows.len() < len {
