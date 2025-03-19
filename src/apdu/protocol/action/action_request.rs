@@ -18,7 +18,7 @@ pub struct ActionRequestList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ActionRequestAttribute<'a> {
+pub struct ActionRequestAttribute<'a> {
     omd: OMD,
     parameter: Data<'a>,
 }
@@ -31,7 +31,7 @@ pub struct ActionThenGetRequestNormalList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ActionThenGetRequestNormalAttribute<'a> {
+pub struct ActionThenGetRequestNormalAttribute<'a> {
     omd: OMD,
     parameter: Data<'a>,
     oad: OAD,

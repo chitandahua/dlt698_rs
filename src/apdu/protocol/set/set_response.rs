@@ -19,7 +19,7 @@ pub struct SetResponseNormalList {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct SetResponseNormalResult {
+pub struct SetResponseNormalResult {
     oad: OAD,
     result: DAR,
 }
@@ -32,7 +32,7 @@ pub struct SetThenGetResponseNormalList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct SetThenGetResponseNormalResult<'a> {
+pub struct SetThenGetResponseNormalResult<'a> {
     oad: OAD,
     result: DAR,
     a_result_normal: AResultNormal<'a>,

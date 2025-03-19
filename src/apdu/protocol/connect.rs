@@ -1,5 +1,8 @@
 mod connect_request;
+pub use connect_request::*;
+
 mod connect_response;
+pub use connect_response::*;
 
 use asn1_type::FixedBitString;
 

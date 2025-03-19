@@ -20,7 +20,7 @@ pub struct ActionResponseNormalList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ActionResponseNormalResult<'a> {
+pub struct ActionResponseNormalResult<'a> {
     omd: OMD,
     result: DAR,
     response_data: Option<Data<'a>>,
@@ -34,7 +34,7 @@ pub struct ActionThenGetResponseNormalList<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ActionThenGetResponseNormalResult<'a> {
+pub struct ActionThenGetResponseNormalResult<'a> {
     omd: OMD,
     result: DAR,
     response_data: Option<Data<'a>>,

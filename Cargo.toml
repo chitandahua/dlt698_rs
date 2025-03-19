@@ -11,3 +11,4 @@ axdr_macro = { path = "./axdr_macro" }
 asn1_type = { path = "./asn1_type" }
 anyhow = "1"
 hex = "0"
+num_enum = "0"

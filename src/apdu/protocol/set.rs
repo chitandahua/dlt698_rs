@@ -7,7 +7,7 @@ pub use set_response::*;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum SetRequest<'a> {
+pub enum SetRequest<'a> {
     #[tag(1)]
     SetRequestNormal(SetRequestNormal<'a>),
     #[tag(2)]
@@ -17,7 +17,7 @@ enum SetRequest<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum SetResponse<'a> {
+pub enum SetResponse<'a> {
     #[tag(1)]
     SetResponseNormal(SetResponseNormal),
     #[tag(2)]
