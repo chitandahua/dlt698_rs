@@ -71,6 +71,23 @@ mod tests {
         )));
 
         let axdr = apdu.to_axdr_vec().unwrap();
-        println!("{}", hex::encode(&axdr));
+        assert_eq!(hex::encode(axdr), "011001001007e60101010621101234");
+    }
+
+    #[test]
+    fn test_apdu_from_axdr() {
+        let (_, datetime) =
+            DateTime::from_axdr(&[0x07, 0xe6, 0x01, 0x01, 0x01, 0x06, 0x21, 0x10, 0x12, 0x34])
+                .unwrap();
+        let result = Apdu::LinkApdu(LinkApdu::LinkRequest(LinkRequest::new(
+            0x10,
+            RequestType::Heartbeat,
+            0x0010,
+            datetime,
+        )));
+
+        let axdr = hex::decode("011001001007e60101010621101234").unwrap();
+        let (_, apdu) = Apdu::from_axdr(axdr.as_slice()).unwrap();
+        assert_eq!(apdu, result);
     }
 }

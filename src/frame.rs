@@ -1,4 +1,4 @@
-use super::checksum::caculate_fcs16;
+use super::checksum::calculate_fcs16;
 use crate::apdu::Apdu;
 use crate::Result;
 use anyhow::ensure;
@@ -239,7 +239,7 @@ impl Header {
         bytes.extend(self.length_field);
         bytes.extend(self.control_field.clone());
         bytes.extend(self.address_field.clone());
-        self.checksum = caculate_fcs16(bytes.as_slice());
+        self.checksum = calculate_fcs16(bytes.as_slice());
     }
 
     fn _into_vec(self) -> Vec<u8> {
@@ -271,7 +271,7 @@ impl TryFrom<&[u8]> for Header {
             FrameError::Length(bytes.len())
         );
         let checksum = u16::from_le_bytes([bytes[offset], bytes[offset + 1]]);
-        let expect_checksum = caculate_fcs16(&bytes[1..offset]);
+        let expect_checksum = calculate_fcs16(&bytes[1..offset]);
         ensure!(
             expect_checksum == checksum,
             FrameError::HeaderChecksum {
@@ -472,7 +472,7 @@ impl<'a> Frame<'a> {
             Vec::with_capacity(self.header.bytes_len() + self.user_data.bytes_len() + TAIL_SIZE);
         bytes.extend(self.header.clone().into_iter().skip(1)); // 去掉帧起始字符
         bytes.extend(self.user_data.to_vec());
-        self.tail.checksum = caculate_fcs16(bytes.as_slice());
+        self.tail.checksum = calculate_fcs16(bytes.as_slice());
     }
 }
 
@@ -483,7 +483,7 @@ impl<'a> TryFrom<&'a [u8]> for Frame<'a> {
         let header = Header::try_from(bytes)?;
         let (bytes, user_data) = UserData::new(header.is_fragment(), &bytes[header.bytes_len()..])?;
         let checksum = u16::from_le_bytes([bytes[0], bytes[1]]);
-        let expect_checksum = caculate_fcs16(&slice[1..slice.len() - TAIL_SIZE]);
+        let expect_checksum = calculate_fcs16(&slice[1..slice.len() - TAIL_SIZE]);
         ensure!(
             expect_checksum == checksum,
             FrameError::FrameChecksum {
