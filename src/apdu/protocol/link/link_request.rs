@@ -3,7 +3,7 @@ use asn1_type::LongUnsigned;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum RequestType {
+pub enum RequestType {
     #[tag(0)]
     Login,
     #[tag(1)]
@@ -18,4 +18,20 @@ pub struct LinkRequest {
     request_type: RequestType,
     heartbeat_interval: LongUnsigned,
     request_time: DateTime,
+}
+
+impl LinkRequest {
+    pub fn new(
+        piid_acd: PIID_ACD,
+        request_type: RequestType,
+        heartbeat_interval: LongUnsigned,
+        request_time: DateTime,
+    ) -> Self {
+        Self {
+            piid_acd,
+            request_type,
+            heartbeat_interval,
+            request_time,
+        }
+    }
 }

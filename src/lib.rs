@@ -1,4 +1,9 @@
-mod apdu;
+pub mod apdu;
+mod checksum;
+pub mod frame;
 
 pub use axdr_macro::AxdrSequence;
 pub use axdr_macro::ToAxdrSequence;
+
+pub type Error = anyhow::Error;
+pub type Result<T> = anyhow::Result<T, Error>;

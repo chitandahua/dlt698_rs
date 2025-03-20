@@ -12,3 +12,7 @@ asn1_type = { path = "./asn1_type" }
 anyhow = "1"
 hex = "0"
 num_enum = "0"
+enumx_derive = "0"
+thiserror = "2"
+strum = "0"
+strum_macros = "0"

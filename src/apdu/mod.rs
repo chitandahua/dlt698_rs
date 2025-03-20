@@ -1,2 +1,76 @@
-mod data_unit;
-mod protocol;
+pub mod data_unit;
+pub mod protocol;
+
+use crate::apdu::protocol::{ClientApdu, LinkApdu, SecurityApdu, ServerApdu};
+
+enumx_derive::def_impls! {
+    #[derive(Debug, PartialEq)]
+    pub enum Apdu<'a> {
+        LinkApdu(LinkApdu),
+        ClientApdu(ClientApdu<'a>),
+        ServerApdu(ServerApdu<'a>),
+        SecurityApdu(SecurityApdu<'a>),
+    }
+
+    impl<'a> asn1_type::traits::ToAxdr for Apdu<'a>
+        where _Variants!(): asn1_type::traits::ToAxdr
+    {
+        fn to_axdr_len(&self) -> asn1_type::Result<usize> {
+            _match!(
+                _variant!().to_axdr_len()
+            )
+        }
+
+        fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
+            _match!(
+                _variant!().write_axdr_header(writer)
+            )
+        }
+
+        fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
+            _match!(
+                _variant!().write_axdr_content(writer)
+            )
+        }
+    }
+}
+
+impl<'a> asn1_type::traits::FromAxdr<'a> for Apdu<'a> {
+    fn from_axdr(bytes: &'a [u8]) -> asn1_type::ParseResult<'a, Self> {
+        // 依次解析
+        if let Ok((bytes, link_apdu)) = LinkApdu::from_axdr(bytes) {
+            Ok((bytes, Apdu::LinkApdu(link_apdu)))
+        } else if let Ok((bytes, client_apdu)) = ClientApdu::from_axdr(bytes) {
+            Ok((bytes, Apdu::ClientApdu(client_apdu)))
+        } else if let Ok((bytes, server_apdu)) = ServerApdu::from_axdr(bytes) {
+            Ok((bytes, Apdu::ServerApdu(server_apdu)))
+        } else if let Ok((bytes, security_apdu)) = SecurityApdu::from_axdr(bytes) {
+            Ok((bytes, Apdu::SecurityApdu(security_apdu)))
+        } else {
+            Err(asn1_type::Error::InvalidTag.into())
+        }
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::apdu::data_unit::DateTime;
+    use crate::apdu::protocol::{LinkRequest, RequestType};
+    use asn1_type::traits::{FromAxdr, ToAxdr};
+
+    #[test]
+    fn test_apdu_to_axdr() {
+        let (_, datetime) =
+            DateTime::from_axdr(&[0x07, 0xe6, 0x01, 0x01, 0x01, 0x06, 0x21, 0x10, 0x12, 0x34])
+                .unwrap();
+        let apdu = Apdu::LinkApdu(LinkApdu::LinkRequest(LinkRequest::new(
+            0x10,
+            RequestType::Heartbeat,
+            0x0010,
+            datetime,
+        )));
+
+        let axdr = apdu.to_axdr_vec().unwrap();
+        println!("{}", hex::encode(&axdr));
+    }
+}

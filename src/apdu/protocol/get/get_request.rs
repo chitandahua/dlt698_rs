@@ -8,6 +8,12 @@ pub struct GetRequestNormal {
     oad: OAD,
 }
 
+impl GetRequestNormal {
+    pub fn new(piid: PIID, oad: OAD) -> Self {
+        Self { piid, oad }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct GetRequestNormalList {
     piid: PIID,

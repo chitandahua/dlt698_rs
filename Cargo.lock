@@ -31,7 +31,7 @@ checksum = "3109e49b1e4909e9db6515a30c633684d68cdeaa252f215214cb4fa1a5bfee2c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
  "synstructure",
 ]
 
@@ -43,7 +43,7 @@ checksum = "7b18050c2cd6fe86c3a76584ef5e0baf286d038cda203eb6223df2cc413565f7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -66,7 +66,7 @@ dependencies = [
  "asn1_type",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
  "synstructure",
 ]
 
@@ -78,7 +78,7 @@ checksum = "97369cbbc041bc366949bc74d34658d6cda5621039731c6310521892a3a20ae0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -88,8 +88,24 @@ dependencies = [
  "anyhow",
  "asn1_type",
  "axdr_macro",
+ "enumx_derive",
  "hex",
  "num_enum",
+ "strum",
+ "strum_macros",
+ "thiserror",
+]
+
+[[package]]
+name = "enumx_derive"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fa5d66efdd1eab6ea85ba31bdb58bed1e4ce218c1361061384ece88f40ebeb49"
+dependencies = [
+ "indexmap 1.9.3",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -100,9 +116,21 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "hashbrown"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
+
+[[package]]
+name = "hashbrown"
 version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
+
+[[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hex"
@@ -112,12 +140,22 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "indexmap"
+version = "1.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
+dependencies = [
+ "autocfg",
+ "hashbrown 0.12.3",
+]
+
+[[package]]
+name = "indexmap"
 version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3954d50fe15b02142bf25d3b8bdadb634ec3948f103d04ffe3031bc8fe9d7058"
 dependencies = [
  "equivalent",
- "hashbrown",
+ "hashbrown 0.15.2",
 ]
 
 [[package]]
@@ -169,7 +207,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -209,6 +247,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustversion"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
+
+[[package]]
+name = "strum"
+version = "0.27.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f64def088c51c9510a8579e3c5d67c65349dcf755e5479ad3d010aa6454e2c32"
+
+[[package]]
+name = "strum_macros"
+version = "0.27.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c77a8c5abcaf0f9ce05d62342b7d298c346515365c36b673df4ebe3ced01fde8"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "rustversion",
+ "syn 2.0.98",
+]
+
+[[package]]
+name = "syn"
+version = "1.0.109"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -227,7 +301,7 @@ checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -247,7 +321,7 @@ checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -262,7 +336,7 @@ version = "0.22.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "17b4795ff5edd201c7cd6dca065ae59972ce77d1b80fa0a84d94950ece7d1474"
 dependencies = [
- "indexmap",
+ "indexmap 2.8.0",
  "toml_datetime",
  "winnow",
 ]

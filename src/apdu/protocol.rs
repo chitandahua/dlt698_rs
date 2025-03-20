@@ -5,10 +5,10 @@ mod connect;
 pub use connect::{ConnectRequest, ConnectResponse};
 
 mod get;
-pub use get::{AResultNormal, AResultRecord, GetRequest, GetResponse};
+pub use get::{AResultNormal, AResultRecord, GetRequest, GetRequestNormal, GetResponse};
 
 mod link;
-pub use link::{LinkRequest, LinkResponse};
+pub use link::{LinkRequest, LinkResponse, RequestType};
 
 mod proxy;
 pub use proxy::{ProxyRequest, ProxyResponse};
@@ -31,7 +31,7 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub enum LinkApdu {
-    #[tag(0)]
+    #[tag(1)]
     LinkRequest(LinkRequest),
     #[tag(129)]
     LinkResponse(LinkResponse),
@@ -60,6 +60,18 @@ pub enum ClientApplicationService<'a> {
     ReportResponse(ReportResponse<'a>),
     #[tag(9)]
     ProxyRequest(ProxyRequest<'a>),
+}
+
+impl<'a> ClientApdu<'a> {
+    pub fn new(
+        application_service: ClientApplicationService<'a>,
+        time_tag: Option<TimeTag>,
+    ) -> Self {
+        Self {
+            application_service,
+            time_tag,
+        }
+    }
 }
 
 // Server-APDU
@@ -110,7 +122,7 @@ enum FollowReport<'a> {
 
 // TimeTag
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct TimeTag {
+pub struct TimeTag {
     send_time: DateTimeS,
     permission_delay: TI,
 }
