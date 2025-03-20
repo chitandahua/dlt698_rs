@@ -70,7 +70,7 @@ pub enum FunctionCode {
 pub struct CtrlField {
     dir: Dir,
     prm: Prm,
-    fragment: u8,
+    is_fragment: bool,
     function_code: FunctionCode,
 }
 
@@ -79,14 +79,14 @@ impl Default for CtrlField {
         CtrlField {
             dir: Dir::Client,
             prm: Prm::Server,
-            fragment: 0,
+            is_fragment: false,
             function_code: FunctionCode::UserData,
         }
     }
 }
 
 impl CtrlField {
-    pub fn new(is_response: bool, is_framing: bool, function_code: FunctionCode) -> Self {
+    pub fn new(is_response: bool, is_fragment: bool, function_code: FunctionCode) -> Self {
         CtrlField {
             dir: Dir::Client,
             prm: if is_response {
@@ -94,7 +94,7 @@ impl CtrlField {
             } else {
                 Prm::Client
             },
-            fragment: is_framing as u8,
+            is_fragment,
             function_code,
         }
     }
@@ -105,7 +105,7 @@ impl From<CtrlField> for u8 {
         // 7: dir, 6: prm, 5: fragment 3-1: function_code
         ((ctrl_field.dir as u8) << 7)
             | ((ctrl_field.prm as u8) << 6)
-            | (Into::<u8>::into(ctrl_field.fragment) << 5)
+            | ((ctrl_field.is_fragment as u8) << 5)
             | (ctrl_field.function_code as u8)
     }
 }
@@ -116,7 +116,7 @@ impl TryFrom<u8> for CtrlField {
         Ok(CtrlField {
             dir: (ctrl_field >> 7).try_into().unwrap(),
             prm: ((ctrl_field >> 6) & 0x01).try_into().unwrap(),
-            fragment: ((ctrl_field >> 5) & 0x01).try_into().unwrap(),
+            is_fragment: ((ctrl_field >> 5) & 0x01) == 1,
             function_code: (ctrl_field & 0x07).try_into()?,
         })
     }
@@ -250,8 +250,8 @@ impl Header {
         1 + LENGTH_FIELD_SIZE + CONTROL_FIELD_SIZE + self.address_field.bytes_len() + CHECKSUM_SIZE
     }
 
-    fn is_framing(&self) -> bool {
-        self.control_field.fragment == 1
+    fn is_fragment(&self) -> bool {
+        self.control_field.is_fragment
     }
 }
 
@@ -400,8 +400,8 @@ pub enum UserData<'a> {
 }
 
 impl<'a> UserData<'a> {
-    fn new(is_framing: bool, bytes: &'a [u8]) -> Result<(&'a [u8], Self)> {
-        if is_framing {
+    fn new(is_fragment: bool, bytes: &'a [u8]) -> Result<(&'a [u8], Self)> {
+        if is_fragment {
             let fragment = ApduFragment::try_from(bytes)?;
             Ok((
                 &bytes[bytes.len() - TAIL_SIZE..],
@@ -426,6 +426,10 @@ impl<'a> UserData<'a> {
             UserData::Apdu(apdu) => apdu.to_axdr_vec().unwrap(),
             UserData::Fragment(fragment) => fragment.clone().into(),
         }
+    }
+
+    fn _into_vec(self) -> Vec<u8> {
+        self.into()
     }
 }
 
@@ -495,7 +499,7 @@ impl<'a> TryFrom<&'a [u8]> for Frame<'a> {
     fn try_from(bytes: &'a [u8]) -> Result<Self> {
         let slice = bytes;
         let header = Header::try_from(bytes)?;
-        let (bytes, user_data) = UserData::new(header.is_framing(), &bytes[header.bytes_len()..])?;
+        let (bytes, user_data) = UserData::new(header.is_fragment(), &bytes[header.bytes_len()..])?;
         let checksum = u16::from_le_bytes([bytes[0], bytes[1]]);
         let expect_checksum = caculate_fcs16(&slice[1..slice.len() - TAIL_SIZE]);
         ensure!(
@@ -608,7 +612,7 @@ mod tests {
             CtrlField {
                 dir: Dir::Client,
                 prm: Prm::Client,
-                fragment: 0,
+                is_fragment: false,
                 function_code: FunctionCode::UserData,
             },
             AddressField::new(
