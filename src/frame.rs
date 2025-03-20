@@ -36,13 +36,19 @@ impl From<LengthField> for Vec<u8> {
     }
 }
 
-impl IntoIterator for LengthField {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        Into::<Vec<u8>>::into(self).into_iter()
-    }
+macro_rules! impl_into_iterator {
+    ($type:ty) => {
+        impl IntoIterator for $type {
+            type Item = u8;
+            type IntoIter = std::vec::IntoIter<u8>;
+            fn into_iter(self) -> Self::IntoIter {
+                Into::<Vec<u8>>::into(self).into_iter()
+            }
+        }
+    };
 }
+
+impl_into_iterator!(LengthField);
 
 // ctrl field
 #[derive(Debug, Clone, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -114,7 +120,7 @@ impl TryFrom<u8> for CtrlField {
     type Error = crate::Error;
     fn try_from(ctrl_field: u8) -> Result<Self> {
         Ok(CtrlField {
-            dir: (ctrl_field >> 7).try_into().unwrap(),
+            dir: ((ctrl_field >> 7) & 0x01).try_into().unwrap(),
             prm: ((ctrl_field >> 6) & 0x01).try_into().unwrap(),
             is_fragment: ((ctrl_field >> 5) & 0x01) == 1,
             function_code: (ctrl_field & 0x07).try_into()?,
@@ -194,8 +200,8 @@ impl From<AddressField> for Vec<u8> {
     fn from(address: AddressField) -> Self {
         let mut bytes = Vec::with_capacity(address.bytes_len());
         bytes.push(
-            (Into::<u8>::into(address.server_addr.addr_type) << 6)
-                | (Into::<u8>::into(address.server_addr.logic_addr) << 4)
+            (address.server_addr.addr_type << 6)
+                | (address.server_addr.logic_addr << 4)
                 | ((address.server_addr.addr.len() - 1) as u8 & 0x0f),
         );
         bytes.extend(address.server_addr.addr.iter().rev());
@@ -204,13 +210,7 @@ impl From<AddressField> for Vec<u8> {
     }
 }
 
-impl IntoIterator for AddressField {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        Into::<Vec<u8>>::into(self).into_iter()
-    }
-}
+impl_into_iterator!(AddressField);
 
 #[derive(Debug, Clone)]
 pub struct Header {
@@ -230,11 +230,11 @@ impl Header {
             address_field,
             checksum: 0,
         };
-        header.caculate_checksum();
+        header.calculate_checksum();
         header
     }
 
-    fn caculate_checksum(&mut self) {
+    fn calculate_checksum(&mut self) {
         let mut bytes = Vec::with_capacity(self.bytes_len() - 1 - CHECKSUM_SIZE);
         bytes.extend(self.length_field);
         bytes.extend(self.control_field.clone());
@@ -301,13 +301,7 @@ impl From<Header> for Vec<u8> {
     }
 }
 
-impl IntoIterator for Header {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        Into::<Vec<u8>>::into(self).into_iter()
-    }
-}
+impl_into_iterator!(Header);
 
 // tail
 const TAIL_END: u8 = 0x16;
@@ -326,13 +320,7 @@ impl From<Tail> for Vec<u8> {
     }
 }
 
-impl IntoIterator for Tail {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        Into::<Vec<u8>>::into(self).into_iter()
-    }
-}
+impl_into_iterator!(Tail);
 
 // user_data
 #[derive(Debug, Clone, Copy, PartialEq, TryFromPrimitive, IntoPrimitive)]
@@ -442,13 +430,7 @@ impl<'a> From<UserData<'a>> for Vec<u8> {
     }
 }
 
-impl<'a> IntoIterator for UserData<'a> {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        Into::<Vec<u8>>::into(self).into_iter()
-    }
-}
+impl_into_iterator!(UserData<'_>);
 
 // frame
 const LENGTH_FIELD_SIZE: usize = 2;
@@ -481,11 +463,11 @@ impl<'a> Frame<'a> {
                 end: TAIL_END,
             },
         };
-        frame.caculate_checksum();
+        frame.calculate_checksum();
         frame
     }
 
-    fn caculate_checksum(&mut self) {
+    fn calculate_checksum(&mut self) {
         let mut bytes =
             Vec::with_capacity(self.header.bytes_len() + self.user_data.bytes_len() + TAIL_SIZE);
         bytes.extend(self.header.clone().into_iter().skip(1)); // 去掉帧起始字符
@@ -531,13 +513,7 @@ impl<'a> From<Frame<'a>> for Vec<u8> {
     }
 }
 
-impl<'a> IntoIterator for Frame<'a> {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        Into::<Vec<u8>>::into(self).into_iter()
-    }
-}
+impl_into_iterator!(Frame<'_>);
 
 #[derive(Error, Debug, PartialEq, EnumString)]
 pub enum FrameError {
