@@ -4,6 +4,7 @@ use crate::Result;
 use anyhow::ensure;
 use asn1_type::traits::{FromAxdr, ToAxdr};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use std::io::Cursor;
 use strum_macros::EnumString;
 use thiserror::Error;
 
@@ -51,18 +52,38 @@ macro_rules! impl_into_iterator {
 impl_into_iterator!(LengthField);
 
 // ctrl field
-#[derive(Debug, Clone, PartialEq, IntoPrimitive, TryFromPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 enum Dir {
     Client = 0,
     Server = 1,
 }
 
-#[derive(Debug, Clone, PartialEq, IntoPrimitive, TryFromPrimitive)]
+impl std::ops::Not for Dir {
+    type Output = Dir;
+    fn not(self) -> Self::Output {
+        match self {
+            Dir::Client => Dir::Server,
+            Dir::Server => Dir::Client,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, IntoPrimitive, TryFromPrimitive)]
 #[repr(u8)]
 enum Prm {
     Server = 0,
     Client = 1,
+}
+
+impl std::ops::Not for Prm {
+    type Output = Prm;
+    fn not(self) -> Self::Output {
+        match self {
+            Prm::Server => Prm::Client,
+            Prm::Client => Prm::Server,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, IntoPrimitive, TryFromPrimitive)]
@@ -77,6 +98,7 @@ pub struct CtrlField {
     dir: Dir,
     prm: Prm,
     is_fragment: bool,
+    is_scramble: bool,
     function_code: FunctionCode,
 }
 
@@ -86,13 +108,19 @@ impl Default for CtrlField {
             dir: Dir::Client,
             prm: Prm::Server,
             is_fragment: false,
+            is_scramble: false,
             function_code: FunctionCode::UserData,
         }
     }
 }
 
 impl CtrlField {
-    pub fn new(is_response: bool, is_fragment: bool, function_code: FunctionCode) -> Self {
+    pub fn new(
+        is_response: bool,
+        is_fragment: bool,
+        is_scramble: bool,
+        function_code: FunctionCode,
+    ) -> Self {
         CtrlField {
             dir: Dir::Client,
             prm: if is_response {
@@ -100,9 +128,15 @@ impl CtrlField {
             } else {
                 Prm::Client
             },
+            is_scramble,
             is_fragment,
             function_code,
         }
+    }
+
+    fn reverse(&mut self) {
+        self.prm = !self.prm;
+        self.dir = !self.dir;
     }
 }
 
@@ -112,6 +146,7 @@ impl From<CtrlField> for u8 {
         ((ctrl_field.dir as u8) << 7)
             | ((ctrl_field.prm as u8) << 6)
             | ((ctrl_field.is_fragment as u8) << 5)
+            | ((ctrl_field.is_scramble as u8) << 3)
             | (ctrl_field.function_code as u8)
     }
 }
@@ -123,6 +158,7 @@ impl TryFrom<u8> for CtrlField {
             dir: ((ctrl_field >> 7) & 0x01).try_into().unwrap(),
             prm: ((ctrl_field >> 6) & 0x01).try_into().unwrap(),
             is_fragment: ((ctrl_field >> 5) & 0x01) == 1,
+            is_scramble: ((ctrl_field >> 3) & 0x01) == 1,
             function_code: (ctrl_field & 0x07).try_into()?,
         })
     }
@@ -222,16 +258,14 @@ pub struct Header {
 }
 
 impl Header {
-    pub fn new(control_field: CtrlField, address_field: AddressField, length: u16) -> Self {
-        let mut header = Self {
+    pub fn new(control_field: CtrlField, address_field: AddressField) -> Self {
+        Self {
             start: HEADER_START,
-            length_field: LengthField::new(length),
+            length_field: LengthField::new(0), // 默认0 后续构造frame时计算
             control_field,
             address_field,
             checksum: 0,
-        };
-        header.calculate_checksum();
-        header
+        }
     }
 
     fn calculate_checksum(&mut self) {
@@ -305,7 +339,7 @@ impl_into_iterator!(Header);
 
 // tail
 const TAIL_END: u8 = 0x16;
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tail {
     checksum: u16,
     end: u8,
@@ -323,26 +357,33 @@ impl From<Tail> for Vec<u8> {
 impl_into_iterator!(Tail);
 
 // user_data
-#[derive(Debug, Clone, Copy, PartialEq, TryFromPrimitive, IntoPrimitive)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, TryFromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 enum FragmentTag {
+    #[default]
     Start = 0,
     End = 1,
     Confirm = 2,
     Middle = 3,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 struct FormatDomain {
     tag: FragmentTag,
     index: u16,
+}
+
+impl FormatDomain {
+    fn next_index(&self) -> u16 {
+        (self.index + 1) % 0x1000
+    }
 }
 
 impl From<u16> for FormatDomain {
     fn from(format: u16) -> Self {
         FormatDomain {
             tag: (((format & 0xc000) >> 14) as u8).try_into().unwrap(),
-            index: format & 0x07ff,
+            index: format & 0x0fff,
         }
     }
 }
@@ -353,7 +394,7 @@ impl From<FormatDomain> for u16 {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct ApduFragment {
     format_domain: FormatDomain,
     fragment: Vec<u8>,
@@ -451,10 +492,7 @@ impl<'a> Frame<'a> {
         address_field: AddressField,
         user_data: UserData<'a>,
     ) -> Self {
-        const FRAME_SIZE: usize =
-            LENGTH_FIELD_SIZE + CONTROL_FIELD_SIZE + CHECKSUM_SIZE + TAIL_SIZE - 1;
-        let length = user_data.bytes_len() + address_field.bytes_len() + FRAME_SIZE;
-        let header = Header::new(control_field, address_field, length as u16);
+        let header = Header::new(control_field, address_field);
         let mut frame = Self {
             header,
             user_data,
@@ -463,8 +501,109 @@ impl<'a> Frame<'a> {
                 end: TAIL_END,
             },
         };
+        frame.calculate_length();
         frame.calculate_checksum();
         frame
+    }
+
+    pub fn parse(src: &mut Cursor<&'a [u8]>) -> Result<Option<Self>> {
+        let end = src.get_ref().len();
+
+        // header 不匹配的则直接移除
+        while src.position() < end as u64 && src.get_ref()[src.position() as usize] != HEADER_START
+        {
+            src.set_position(src.position() + 1);
+        }
+
+        // 判断长度
+        let start = src.position() as usize;
+        if end - start < 1 + LENGTH_FIELD_SIZE {
+            return Ok(None);
+        }
+        let length =
+            u16::from_le_bytes(src.get_ref()[1..LENGTH_FIELD_SIZE + 1].try_into()?) as usize;
+        if end - start < 2 + length {
+            return Ok(None);
+        }
+
+        src.set_position(src.position() + length as u64);
+        Ok(Some(src.get_ref()[start..start + length].try_into()?))
+    }
+
+    pub fn fragment_response(&self) -> Result<Frame> {
+        match &self.user_data {
+            UserData::Apdu(_) => Err(FrameError::InvalidApduType.into()),
+            UserData::Fragment(fragment) => {
+                let response_fragment = ApduFragment {
+                    format_domain: FormatDomain {
+                        tag: FragmentTag::Confirm,
+                        index: fragment.format_domain.index,
+                    },
+                    fragment: vec![],
+                };
+                let mut control_field = self.header.control_field.clone();
+                control_field.reverse();
+                Ok(Frame::new(
+                    control_field,
+                    self.header.address_field.clone(),
+                    UserData::Fragment(response_fragment),
+                ))
+            }
+        }
+    }
+
+    // 对于接收到的fragment进行合并 返回是否是最后一片
+    pub fn combine_fragment(&mut self, frame: Option<Self>) -> Result<bool> {
+        ensure!(self.header.is_fragment(), "invalid fragment frame");
+        // 起始分片 没有frame直接返回
+        let frame = match frame {
+            None => {
+                match &self.user_data {
+                    UserData::Fragment(fragment) => {
+                        ensure!(
+                            fragment.format_domain.tag == FragmentTag::Start,
+                            FrameError::InvalidFragmentTag
+                        );
+                        return Ok(false);
+                    }
+                    //return Err(FrameError::InvalidApduType.into()), // 按理来说外层已匹配 不会到这
+                    _ => unreachable!(),
+                }
+            }
+            Some(frame) => {
+                ensure!(frame.header.is_fragment(), "invalid fragment frame");
+                frame
+            }
+        };
+
+        match (&mut self.user_data, frame.user_data) {
+            (UserData::Fragment(fragment1), UserData::Fragment(fragment2)) => {
+                if fragment1.format_domain.next_index() != fragment2.format_domain.index {
+                    return Err(FrameError::MismatchFragmentIndex.into());
+                }
+                match fragment2.format_domain.tag {
+                    FragmentTag::Confirm | FragmentTag::Start => {
+                        Err(FrameError::InvalidFragmentTag)
+                    }
+                    FragmentTag::Middle | FragmentTag::End => {
+                        fragment1.format_domain = fragment2.format_domain;
+                        fragment1.fragment.extend(fragment2.fragment);
+                        Ok(fragment1.format_domain.tag == FragmentTag::End)
+                    }
+                }
+            }
+            _ => Err(FrameError::InvalidApduType),
+        }
+        .map_err(anyhow::Error::from)
+    }
+
+    fn calculate_length(&mut self) {
+        const FRAME_SIZE: usize =
+            LENGTH_FIELD_SIZE + CONTROL_FIELD_SIZE + CHECKSUM_SIZE + TAIL_SIZE - 1;
+        let length =
+            self.header.address_field.bytes_len() + self.user_data.bytes_len() + FRAME_SIZE;
+        self.header.length_field.0 = length as u16;
+        self.header.calculate_checksum();
     }
 
     fn calculate_checksum(&mut self) {
@@ -473,6 +612,14 @@ impl<'a> Frame<'a> {
         bytes.extend(self.header.clone().into_iter().skip(1)); // 去掉帧起始字符
         bytes.extend(self.user_data.to_vec());
         self.tail.checksum = calculate_fcs16(bytes.as_slice());
+    }
+
+    pub fn to_vec(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        bytes.extend(self.header.clone());
+        bytes.extend(self.user_data.to_vec());
+        bytes.extend(self.tail.clone());
+        bytes
     }
 }
 
@@ -527,6 +674,12 @@ pub enum FrameError {
     FrameChecksum { checksum: u16, expected: u16 },
     #[error("tail {0} error")]
     Tail(u8),
+    #[error("invalid apdu type")]
+    InvalidApduType,
+    #[error("mismatch fragment index")]
+    MismatchFragmentIndex,
+    #[error("invalid fragment tag")]
+    InvalidFragmentTag,
 }
 
 #[cfg(test)]
@@ -540,10 +693,7 @@ mod tests {
 
     #[test]
     fn test_frame_from_bytes() {
-        let bytes: Vec<u8> = vec![
-            0x68, 0x17, 0x00, 0x43, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x48, 0x5e,
-            0x05, 0x01, 0x15, 0xf1, 0x01, 0x02, 0x00, 0x00, 0x1a, 0x00, 0x16,
-        ];
+        let bytes = hex::decode("681700430502000000000010485e050115f1010200001a0016").unwrap();
         let frame = Frame::try_from(bytes.as_slice()).unwrap();
 
         //println!("{:#?}", frame);
@@ -573,10 +723,7 @@ mod tests {
 
     #[test]
     fn test_frame_to_bytes() {
-        let bytes: Vec<u8> = vec![
-            0x68, 0x17, 0x00, 0x43, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x48, 0x5e,
-            0x05, 0x01, 0x15, 0xf1, 0x01, 0x02, 0x00, 0x00, 0x1a, 0x00, 0x16,
-        ];
+        let bytes =  hex::decode("681700430502000000000010485e050115f1010200001a0016").unwrap();
 
         let apdu = ClientApdu::new(
             ClientApplicationService::GetRequest(GetRequest::GetRequestNormal(
@@ -589,6 +736,7 @@ mod tests {
                 dir: Dir::Client,
                 prm: Prm::Client,
                 is_fragment: false,
+                is_scramble: false,
                 function_code: FunctionCode::UserData,
             },
             AddressField::new(
@@ -599,5 +747,43 @@ mod tests {
         );
 
         assert_eq!(Into::<Vec<u8>>::into(frame), bytes);
+    }
+
+    #[test]
+    fn test_frame_fragment_response() {
+        let bytes = hex::decode("681700a30502000000000010c58b050115f1010200001a0016").unwrap();
+        let frame = Frame::try_from(bytes.as_slice()).unwrap();
+
+        let response = frame.fragment_response().unwrap();
+
+        assert_eq!("681100630502000000000010065c0581e71716", hex::encode(Into::<Vec<u8>>::into(response)));
+    }
+
+    #[test]
+    fn test_frame_fragment_combine() {
+        let first = hex::decode("681400a3050200000000001076750501050115d6d116").unwrap();
+        let mut first = Frame::try_from(first.as_slice()).unwrap();
+        let middle = hex::decode("681400a30502000000000010767506f1f101025a3016").unwrap();
+        let middle = Frame::try_from(middle.as_slice()).unwrap();
+        let tail = hex::decode("681400a3050200000000001076750741000004fc16").unwrap();
+        let tail = Frame::try_from(tail.as_slice()).unwrap();
+
+        assert!(!first.combine_fragment(None).unwrap());
+        assert!(!first.combine_fragment(Some(middle)).unwrap());
+        assert!(first.combine_fragment(Some(tail)).unwrap());
+        first.header.control_field.is_fragment = false;
+        let f = match first.user_data {
+            UserData::Fragment(f) => f,
+            _ => unreachable!()
+        };
+        
+        let (_, user_data) = UserData::new(false, f.fragment.as_slice()).unwrap();
+        first.user_data = user_data;
+        
+        first.calculate_length();
+        first.calculate_checksum();
+
+        //println!("{}", hex::encode(Into::<Vec<u8>>::into(first)));
+        assert_eq!("681700830502000000000010fc7c050115f1010200001a0016", hex::encode(Into::<Vec<u8>>::into(first)));
     }
 }
