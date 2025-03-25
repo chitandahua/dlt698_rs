@@ -400,6 +400,12 @@ pub struct ApduFragment {
     fragment: Vec<u8>,
 }
 
+impl ApduFragment {
+    pub fn is_first_fragment(&self) -> bool {
+        self.format_domain.tag == FragmentTag::Start
+    }
+}
+
 impl TryFrom<&[u8]> for ApduFragment {
     type Error = crate::Error;
     fn try_from(bytes: &[u8]) -> Result<Self> {
@@ -481,9 +487,9 @@ const TAIL_SIZE: usize = 3;
 
 #[derive(Debug)]
 pub struct Frame<'a> {
-    header: Header,
-    user_data: UserData<'a>,
-    tail: Tail,
+    pub header: Header,
+    pub user_data: UserData<'a>,
+    pub tail: Tail,
 }
 
 impl<'a> Frame<'a> {
@@ -507,6 +513,7 @@ impl<'a> Frame<'a> {
     }
 
     pub fn parse(src: &mut Cursor<&'a [u8]>) -> Result<Option<Self>> {
+        //println!("parse frame: {}", hex::encode(src.get_ref()));
         let end = src.get_ref().len();
 
         // header 不匹配的则直接移除
@@ -520,9 +527,10 @@ impl<'a> Frame<'a> {
         if end - start < 1 + LENGTH_FIELD_SIZE {
             return Ok(None);
         }
+        // length不包含起始和结束字符
         let length =
-            u16::from_le_bytes(src.get_ref()[1..LENGTH_FIELD_SIZE + 1].try_into()?) as usize;
-        if end - start < 2 + length {
+            u16::from_le_bytes(src.get_ref()[1..LENGTH_FIELD_SIZE + 1].try_into()?) as usize + 2;
+        if end - start < length {
             return Ok(None);
         }
 
@@ -552,42 +560,28 @@ impl<'a> Frame<'a> {
         }
     }
 
-    // 对于接收到的fragment进行合并 返回是否是最后一片
-    pub fn combine_fragment(&mut self, frame: Option<Self>) -> Result<bool> {
-        ensure!(self.header.is_fragment(), "invalid fragment frame");
-        // 起始分片 没有frame直接返回
-        let frame = match frame {
-            None => {
-                match &self.user_data {
-                    UserData::Fragment(fragment) => {
-                        ensure!(
-                            fragment.format_domain.tag == FragmentTag::Start,
-                            FrameError::InvalidFragmentTag
-                        );
-                        return Ok(false);
-                    }
-                    //return Err(FrameError::InvalidApduType.into()), // 按理来说外层已匹配 不会到这
-                    _ => unreachable!(),
-                }
-            }
-            Some(frame) => {
-                ensure!(frame.header.is_fragment(), "invalid fragment frame");
-                frame
-            }
-        };
+    pub fn is_fragment(&self) -> bool {
+        match &self.user_data {
+            UserData::Apdu(_) => false,
+            UserData::Fragment(_) => true,
+        }
+    }
 
-        match (&mut self.user_data, frame.user_data) {
-            (UserData::Fragment(fragment1), UserData::Fragment(fragment2)) => {
-                if fragment1.format_domain.next_index() != fragment2.format_domain.index {
+    // 对于接收到的fragment进行合并 返回是否是最后一片
+    pub fn combine_fragment(&mut self, fragment: ApduFragment) -> Result<bool> {
+        ensure!(self.header.is_fragment(), "invalid fragment frame");
+        match &mut self.user_data {
+            UserData::Fragment(fragment1) => {
+                if fragment1.format_domain.next_index() != fragment.format_domain.index {
                     return Err(FrameError::MismatchFragmentIndex.into());
                 }
-                match fragment2.format_domain.tag {
+                match fragment.format_domain.tag {
                     FragmentTag::Confirm | FragmentTag::Start => {
                         Err(FrameError::InvalidFragmentTag)
                     }
                     FragmentTag::Middle | FragmentTag::End => {
-                        fragment1.format_domain = fragment2.format_domain;
-                        fragment1.fragment.extend(fragment2.fragment);
+                        fragment1.format_domain = fragment.format_domain;
+                        fragment1.fragment.extend(fragment.fragment);
                         Ok(fragment1.format_domain.tag == FragmentTag::End)
                     }
                 }
@@ -595,6 +589,24 @@ impl<'a> Frame<'a> {
             _ => Err(FrameError::InvalidApduType),
         }
         .map_err(anyhow::Error::from)
+    }
+
+    pub fn fragment_transfer(&mut self) -> Result<Frame> {
+        match &self.user_data {
+            UserData::Apdu(_) => unreachable!(),
+            UserData::Fragment(fragment) => {
+                let (_, user_data) = UserData::new(false, fragment.fragment.as_slice())?;
+                let mut frame = Frame {
+                    header: self.header.clone(), // TODO 去掉clone
+                    user_data,
+                    tail: self.tail.clone(),
+                };
+                frame.header.control_field.is_fragment = false;
+                frame.calculate_length();
+                frame.calculate_checksum();
+                Ok(frame)
+            }
+        }
     }
 
     fn calculate_length(&mut self) {
@@ -629,6 +641,7 @@ impl<'a> TryFrom<&'a [u8]> for Frame<'a> {
         let slice = bytes;
         let header = Header::try_from(bytes)?;
         let (bytes, user_data) = UserData::new(header.is_fragment(), &bytes[header.bytes_len()..])?;
+        ensure!(bytes.len() >= TAIL_SIZE, FrameError::Length(slice.len()));
         let checksum = u16::from_le_bytes([bytes[0], bytes[1]]);
         let expect_checksum = calculate_fcs16(&slice[1..slice.len() - TAIL_SIZE]);
         ensure!(
@@ -723,7 +736,7 @@ mod tests {
 
     #[test]
     fn test_frame_to_bytes() {
-        let bytes =  hex::decode("681700430502000000000010485e050115f1010200001a0016").unwrap();
+        let bytes = hex::decode("681700430502000000000010485e050115f1010200001a0016").unwrap();
 
         let apdu = ClientApdu::new(
             ClientApplicationService::GetRequest(GetRequest::GetRequestNormal(
@@ -756,7 +769,10 @@ mod tests {
 
         let response = frame.fragment_response().unwrap();
 
-        assert_eq!("681100630502000000000010065c0581e71716", hex::encode(Into::<Vec<u8>>::into(response)));
+        assert_eq!(
+            "681100630502000000000010065c0581e71716",
+            hex::encode(Into::<Vec<u8>>::into(response))
+        );
     }
 
     #[test]
@@ -765,25 +781,35 @@ mod tests {
         let mut first = Frame::try_from(first.as_slice()).unwrap();
         let middle = hex::decode("681400a30502000000000010767506f1f101025a3016").unwrap();
         let middle = Frame::try_from(middle.as_slice()).unwrap();
-        let tail = hex::decode("681400a3050200000000001076750741000004fc16").unwrap();
+        let middle = match middle.user_data {
+            UserData::Fragment(f) => f,
+            _ => unreachable!(),
+        };
+        let tail = hex::decode("681300a3050200000000001090d50741000004fc16").unwrap();
         let tail = Frame::try_from(tail.as_slice()).unwrap();
+        let tail = match tail.user_data {
+            UserData::Fragment(f) => f,
+            _ => unreachable!(),
+        };
 
-        assert!(!first.combine_fragment(None).unwrap());
-        assert!(!first.combine_fragment(Some(middle)).unwrap());
-        assert!(first.combine_fragment(Some(tail)).unwrap());
+        assert!(!first.combine_fragment(middle).unwrap());
+        assert!(first.combine_fragment(tail).unwrap());
         first.header.control_field.is_fragment = false;
         let f = match first.user_data {
             UserData::Fragment(f) => f,
-            _ => unreachable!()
+            _ => unreachable!(),
         };
-        
+
         let (_, user_data) = UserData::new(false, f.fragment.as_slice()).unwrap();
         first.user_data = user_data;
-        
+
         first.calculate_length();
         first.calculate_checksum();
 
         //println!("{}", hex::encode(Into::<Vec<u8>>::into(first)));
-        assert_eq!("681700830502000000000010fc7c050115f1010200001a0016", hex::encode(Into::<Vec<u8>>::into(first)));
+        assert_eq!(
+            "681700830502000000000010fc7c050115f1010200001a0016",
+            hex::encode(Into::<Vec<u8>>::into(first))
+        );
     }
 }
