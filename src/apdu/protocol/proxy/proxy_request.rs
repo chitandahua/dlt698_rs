@@ -6,97 +6,97 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // ProxyGetRequestList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyGetRequestList<'a> {
+pub struct ProxyGetRequestList {
     piid: PIID,
     timeout: LongUnsigned,
-    server_attributes: SequenceOf<ProxyGetRequestServerAttribute<'a>>,
+    server_attributes: SequenceOf<ProxyGetRequestServerAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxyGetRequestServerAttribute<'a> {
-    server_addr: TSA<'a>,
+struct ProxyGetRequestServerAttribute {
+    server_addr: TSA,
     timeout: LongUnsigned,
     oads: SequenceOf<OAD>,
 }
 
 // ProxyGetRequestRecord
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyGetRequestRecord<'a> {
+pub struct ProxyGetRequestRecord {
     piid: PIID,
     timeout: LongUnsigned,
-    server_addr: TSA<'a>,
+    server_addr: TSA,
     oad: OAD,
-    rsd: RSD<'a>,
+    rsd: RSD,
     rcsd: RCSD,
 }
 
 // ProxySetRequestList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxySetRequestList<'a> {
+pub struct ProxySetRequestList {
     piid: PIID,
     timeout: LongUnsigned,
-    server_attributes: SequenceOf<ProxySetRequestServerAttribute<'a>>,
+    server_attributes: SequenceOf<ProxySetRequestServerAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxySetRequestServerAttribute<'a> {
-    server_addr: TSA<'a>,
+struct ProxySetRequestServerAttribute {
+    server_addr: TSA,
     timeout: LongUnsigned,
-    oads: SequenceOf<SetRequestNormalAttribute<'a>>,
+    oads: SequenceOf<SetRequestNormalAttribute>,
 }
 
 // ProxySetThenGetRequestList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxySetThenGetRequestList<'a> {
+pub struct ProxySetThenGetRequestList {
     piid: PIID,
     timeout: LongUnsigned,
-    server_attributes: SequenceOf<ProxySetThenGetRequestServerAttribute<'a>>,
+    server_attributes: SequenceOf<ProxySetThenGetRequestServerAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxySetThenGetRequestServerAttribute<'a> {
-    server_addr: TSA<'a>,
+struct ProxySetThenGetRequestServerAttribute {
+    server_addr: TSA,
     timeout: LongUnsigned,
-    attributes: SequenceOf<SetThenGetRequestNormalAttribute<'a>>,
+    attributes: SequenceOf<SetThenGetRequestNormalAttribute>,
 }
 
 // ProxyActionRequestList∷
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyActionRequestList<'a> {
+pub struct ProxyActionRequestList {
     piid: PIID,
     timeout: LongUnsigned,
-    server_actions: SequenceOf<ProxyActionRequestServerAction<'a>>,
+    server_actions: SequenceOf<ProxyActionRequestServerAction>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxyActionRequestServerAction<'a> {
-    server_addr: TSA<'a>,
+struct ProxyActionRequestServerAction {
+    server_addr: TSA,
     timeout: LongUnsigned,
-    actions: SequenceOf<ActionRequestAttribute<'a>>,
+    actions: SequenceOf<ActionRequestAttribute>,
 }
 
 // ProxyActionThenGetRequestList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyActionThenGetRequestList<'a> {
+pub struct ProxyActionThenGetRequestList {
     piid: PIID,
     timeout: LongUnsigned,
-    server_actions: SequenceOf<ProxyActionThenGetRequestServerAction<'a>>,
+    server_actions: SequenceOf<ProxyActionThenGetRequestServerAction>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxyActionThenGetRequestServerAction<'a> {
-    server_addr: TSA<'a>,
+struct ProxyActionThenGetRequestServerAction {
+    server_addr: TSA,
     timeout: LongUnsigned,
-    actions: SequenceOf<ActionThenGetRequestNormalAttribute<'a>>,
+    actions: SequenceOf<ActionThenGetRequestNormalAttribute>,
 }
 
 // ProxyTransCommandRequest
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyTransCommandRequest<'a> {
+pub struct ProxyTransCommandRequest {
     piid: PIID,
     oad: OAD,
     comdcb: COMDCB,
     timeout: LongUnsigned,      // seconds
     byte_timeout: LongUnsigned, // milliseconds
-    command: OctetString<'a>,
+    command: OctetString,
 }

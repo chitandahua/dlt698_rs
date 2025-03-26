@@ -7,21 +7,21 @@ pub use set_response::*;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum SetRequest<'a> {
+pub enum SetRequest {
     #[tag(1)]
-    SetRequestNormal(SetRequestNormal<'a>),
+    SetRequestNormal(SetRequestNormal),
     #[tag(2)]
-    SetRequestNormalList(SetRequestNormalList<'a>),
+    SetRequestNormalList(SetRequestNormalList),
     #[tag(3)]
-    SetThenGetRequestNormalList(SetThenGetRequestNormalList<'a>),
+    SetThenGetRequestNormalList(SetThenGetRequestNormalList),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum SetResponse<'a> {
+pub enum SetResponse {
     #[tag(1)]
     SetResponseNormal(SetResponseNormal),
     #[tag(2)]
     SetResponseNormalList(SetResponseNormalList),
     #[tag(3)]
-    SetThenGetResponseNormalList(SetThenGetResponseNormalList<'a>),
+    SetThenGetResponseNormalList(SetThenGetResponseNormalList),
 }

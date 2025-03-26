@@ -7,21 +7,21 @@ pub use action_response::*;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ActionRequestType<'a> {
+pub enum ActionRequestType {
     #[tag(1)]
-    ActionRequest(ActionRequest<'a>),
+    ActionRequest(ActionRequest),
     #[tag(2)]
-    ActionRequestList(ActionRequestList<'a>),
+    ActionRequestList(ActionRequestList),
     #[tag(3)]
-    ActionThenGetRequestNormalList(ActionThenGetRequestNormalList<'a>),
+    ActionThenGetRequestNormalList(ActionThenGetRequestNormalList),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ActionResponse<'a> {
+pub enum ActionResponse {
     #[tag(1)]
-    ActionResponseNormal(ActionResponseNormal<'a>),
+    ActionResponseNormal(ActionResponseNormal),
     #[tag(2)]
-    ActionResponseNormalList(ActionResponseNormalList<'a>),
+    ActionResponseNormalList(ActionResponseNormalList),
     #[tag(3)]
-    ActionThenGetResponseNormalList(ActionThenGetResponseNormalList<'a>),
+    ActionThenGetResponseNormalList(ActionThenGetResponseNormalList),
 }

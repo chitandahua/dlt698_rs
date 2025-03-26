@@ -3,7 +3,6 @@ use super::unsigned_integer::UnsignedInteger;
 use crate::{Error, ParseResult, Result, SerializeResult};
 use core::convert::TryFrom;
 use std::array::TryFromSliceError;
-use std::borrow::Cow;
 
 // 定长OctetString
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -66,42 +65,34 @@ impl<const N: usize> ToAxdr for FixedOctetString<N> {
 
 // 变长OctetString
 #[derive(Debug, PartialEq, Eq)]
-pub struct OctetString<'a> {
-    data: Cow<'a, [u8]>,
+pub struct OctetString {
+    data: Vec<u8>,
 }
 
-impl<'a> OctetString<'a> {
-    pub const fn new(s: &'a [u8]) -> Self {
-        OctetString {
-            data: Cow::Borrowed(s),
-        }
+impl OctetString {
+    pub fn new(s: &[u8]) -> Self {
+        OctetString { data: s.to_vec() }
     }
 
-    pub fn as_cow(&'a self) -> &'a Cow<'a, [u8]> {
-        &self.data
-    }
-
-    pub fn into_cow(self) -> Cow<'a, [u8]> {
+    pub fn into_vec(self) -> Vec<u8> {
         self.data
     }
 }
 
-impl AsRef<[u8]> for OctetString<'_> {
+impl AsRef<[u8]> for OctetString {
     fn as_ref(&self) -> &[u8] {
-        &self.data
+        self.data.as_slice()
     }
 }
 
-impl<'a> From<&'a [u8]> for OctetString<'a> {
-    fn from(b: &'a [u8]) -> Self {
-        OctetString {
-            data: Cow::Borrowed(b),
-        }
+impl From<&[u8]> for OctetString {
+    fn from(b: &[u8]) -> Self {
+        OctetString { data: b.to_vec() }
     }
 }
 
-impl<'a> FromAxdr<'a> for OctetString<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+impl FromAxdr<'_> for OctetString {
+    fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
         let len = int.as_usize()?;
 
@@ -113,7 +104,7 @@ impl<'a> FromAxdr<'a> for OctetString<'a> {
     }
 }
 
-impl ToAxdr for OctetString<'_> {
+impl ToAxdr for OctetString {
     fn to_axdr_len(&self) -> Result<usize> {
         Ok(UnsignedInteger::from_usize(self.as_ref().len()).to_axdr_len()? + self.as_ref().len())
     }
@@ -148,7 +139,7 @@ mod tests {
     #[test]
     fn test_octetstring_decode() {
         let (_, obj) = OctetString::from_axdr(&[0x03, 0x12, 0x67, 0x50]).unwrap();
-        assert_eq!(obj.data.as_ref(), &[0x12, 0x67, 0x50]);
+        assert_eq!(obj.as_ref(), &[0x12, 0x67, 0x50]);
 
         let (_, obj) = OctetString::from_axdr(&[
             0x81, 0x80, 0x12, 0x23, 0x67, 0x50, 0x35, 0x12, 0x23, 0x67, 0x50, 0x89, 0x12, 0x23,
@@ -164,7 +155,7 @@ mod tests {
         ])
         .unwrap();
         assert_eq!(
-            obj.data.as_ref(),
+            obj.as_ref(),
             &[
                 0x12, 0x23, 0x67, 0x50, 0x35, 0x12, 0x23, 0x67, 0x50, 0x89, 0x12, 0x23, 0x12, 0x23,
                 0x67, 0x50, 0x35, 0x12, 0x23, 0x67, 0x50, 0x89, 0x12, 0x23, 0x12, 0x23, 0x67, 0x50,

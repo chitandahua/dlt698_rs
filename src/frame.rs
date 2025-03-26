@@ -1,7 +1,7 @@
 use super::checksum::calculate_fcs16;
 use crate::apdu::Apdu;
 use crate::Result;
-use anyhow::ensure;
+use anyhow::{ensure, Ok};
 use asn1_type::traits::{FromAxdr, ToAxdr};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::io::Cursor;
@@ -182,7 +182,7 @@ pub struct AddressField {
 pub struct ServerAddr {
     addr_type: u8,
     logic_addr: u8,
-    addr: Vec<u8>, // TODO Cow
+    addr: Vec<u8>,
 }
 
 impl ServerAddr {
@@ -429,13 +429,13 @@ impl From<ApduFragment> for Vec<u8> {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum UserData<'a> {
-    Apdu(Apdu<'a>),
+pub enum UserData {
+    Apdu(Apdu),
     Fragment(ApduFragment),
 }
 
-impl<'a> UserData<'a> {
-    fn new(is_fragment: bool, bytes: &'a [u8]) -> Result<(&'a [u8], Self)> {
+impl UserData {
+    fn new(is_fragment: bool, bytes: &[u8]) -> Result<(&[u8], Self)> {
         if is_fragment {
             let fragment = ApduFragment::try_from(bytes)?;
             Ok((
@@ -468,8 +468,8 @@ impl<'a> UserData<'a> {
     }
 }
 
-impl<'a> From<UserData<'a>> for Vec<u8> {
-    fn from(user_data: UserData<'a>) -> Self {
+impl From<UserData> for Vec<u8> {
+    fn from(user_data: UserData) -> Self {
         match user_data {
             UserData::Apdu(apdu) => apdu.to_axdr_vec().unwrap(),
             UserData::Fragment(fragment) => fragment.into(),
@@ -477,7 +477,7 @@ impl<'a> From<UserData<'a>> for Vec<u8> {
     }
 }
 
-impl_into_iterator!(UserData<'_>);
+impl_into_iterator!(UserData);
 
 // frame
 const LENGTH_FIELD_SIZE: usize = 2;
@@ -486,18 +486,14 @@ const CHECKSUM_SIZE: usize = 2;
 const TAIL_SIZE: usize = 3;
 
 #[derive(Debug)]
-pub struct Frame<'a> {
+pub struct Frame {
     pub header: Header,
-    pub user_data: UserData<'a>,
+    pub user_data: UserData,
     pub tail: Tail,
 }
 
-impl<'a> Frame<'a> {
-    pub fn new(
-        control_field: CtrlField,
-        address_field: AddressField,
-        user_data: UserData<'a>,
-    ) -> Self {
+impl Frame {
+    pub fn new(control_field: CtrlField, address_field: AddressField, user_data: UserData) -> Self {
         let header = Header::new(control_field, address_field);
         let mut frame = Self {
             header,
@@ -512,7 +508,7 @@ impl<'a> Frame<'a> {
         frame
     }
 
-    pub fn parse(src: &mut Cursor<&'a [u8]>) -> Result<Option<Self>> {
+    pub fn parse(src: &mut Cursor<&[u8]>) -> Result<Option<Self>> {
         //println!("parse frame: {}", hex::encode(src.get_ref()));
         let end = src.get_ref().len();
 
@@ -577,7 +573,7 @@ impl<'a> Frame<'a> {
                 }
                 match fragment.format_domain.tag {
                     FragmentTag::Confirm | FragmentTag::Start => {
-                        Err(FrameError::InvalidFragmentTag)
+                        Err(FrameError::InvalidFragmentTag.into())
                     }
                     FragmentTag::Middle | FragmentTag::End => {
                         fragment1.format_domain = fragment.format_domain;
@@ -586,9 +582,8 @@ impl<'a> Frame<'a> {
                     }
                 }
             }
-            _ => Err(FrameError::InvalidApduType),
+            _ => Err(FrameError::InvalidApduType.into()),
         }
-        .map_err(anyhow::Error::from)
     }
 
     pub fn fragment_transfer(&mut self) -> Result<Frame> {
@@ -597,7 +592,7 @@ impl<'a> Frame<'a> {
             UserData::Fragment(fragment) => {
                 let (_, user_data) = UserData::new(false, fragment.fragment.as_slice())?;
                 let mut frame = Frame {
-                    header: self.header.clone(), // TODO 去掉clone
+                    header: self.header.clone(),
                     user_data,
                     tail: self.tail.clone(),
                 };
@@ -635,9 +630,9 @@ impl<'a> Frame<'a> {
     }
 }
 
-impl<'a> TryFrom<&'a [u8]> for Frame<'a> {
+impl TryFrom<&[u8]> for Frame {
     type Error = crate::Error;
-    fn try_from(bytes: &'a [u8]) -> Result<Self> {
+    fn try_from(bytes: &[u8]) -> Result<Self> {
         let slice = bytes;
         let header = Header::try_from(bytes)?;
         let (bytes, user_data) = UserData::new(header.is_fragment(), &bytes[header.bytes_len()..])?;
@@ -663,8 +658,8 @@ impl<'a> TryFrom<&'a [u8]> for Frame<'a> {
     }
 }
 
-impl<'a> From<Frame<'a>> for Vec<u8> {
-    fn from(frame: Frame<'a>) -> Self {
+impl From<Frame> for Vec<u8> {
+    fn from(frame: Frame) -> Self {
         let mut bytes = Vec::new();
         bytes.extend(frame.header);
         bytes.extend(frame.user_data);
@@ -673,7 +668,7 @@ impl<'a> From<Frame<'a>> for Vec<u8> {
     }
 }
 
-impl_into_iterator!(Frame<'_>);
+impl_into_iterator!(Frame);
 
 #[derive(Error, Debug, PartialEq, EnumString)]
 pub enum FrameError {

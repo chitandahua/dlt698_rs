@@ -39,34 +39,31 @@ pub enum LinkApdu {
 
 // Client-APDU
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ClientApdu<'a> {
-    application_service: ClientApplicationService<'a>,
+pub struct ClientApdu {
+    application_service: ClientApplicationService,
     time_tag: Option<TimeTag>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ClientApplicationService<'a> {
+pub enum ClientApplicationService {
     #[tag(2)]
-    ConnectRequest(ConnectRequest<'a>),
+    ConnectRequest(ConnectRequest),
     #[tag(3)]
     ReleaseRequest(ReleaseRequest),
     #[tag(5)]
-    GetRequest(GetRequest<'a>),
+    GetRequest(GetRequest),
     #[tag(6)]
-    SetRequest(SetRequest<'a>),
+    SetRequest(SetRequest),
     #[tag(7)]
-    ActionRequest(ActionRequest<'a>),
+    ActionRequest(ActionRequest),
     #[tag(8)]
-    ReportResponse(ReportResponse<'a>),
+    ReportResponse(ReportResponse),
     #[tag(9)]
-    ProxyRequest(ProxyRequest<'a>),
+    ProxyRequest(ProxyRequest),
 }
 
-impl<'a> ClientApdu<'a> {
-    pub fn new(
-        application_service: ClientApplicationService<'a>,
-        time_tag: Option<TimeTag>,
-    ) -> Self {
+impl ClientApdu {
+    pub fn new(application_service: ClientApplicationService, time_tag: Option<TimeTag>) -> Self {
         Self {
             application_service,
             time_tag,
@@ -76,48 +73,48 @@ impl<'a> ClientApdu<'a> {
 
 // Server-APDU
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ServerApdu<'a> {
-    application_service: ServerApplicationService<'a>,
-    follow_report: Option<FollowReport<'a>>,
+pub struct ServerApdu {
+    application_service: ServerApplicationService,
+    follow_report: Option<FollowReport>,
     time_tag: Option<TimeTag>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ServerApplicationService<'a> {
+pub enum ServerApplicationService {
     #[tag(130)]
-    ConnectResponse(ConnectResponse<'a>),
+    ConnectResponse(ConnectResponse),
     #[tag(131)]
     ReleaseResponse(ReleaseResponse),
     #[tag(132)]
     ReleaseNotification(ReleaseNotification),
     #[tag(133)]
-    GetResponse(GetResponse<'a>),
+    GetResponse(GetResponse),
     #[tag(134)]
-    SetResponse(SetResponse<'a>),
+    SetResponse(SetResponse),
     #[tag(135)]
-    ActionResponse(ActionResponse<'a>),
+    ActionResponse(ActionResponse),
     #[tag(136)]
-    ReportNotification(ReportNotification<'a>),
+    ReportNotification(ReportNotification),
     #[tag(137)]
-    ProxyResponse(ProxyResponse<'a>),
+    ProxyResponse(ProxyResponse),
 }
 
 // Security-APDU
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum SecurityApdu<'a> {
+pub enum SecurityApdu {
     #[tag(16)]
-    SecurityRequest(SecurityRequest<'a>),
+    SecurityRequest(SecurityRequest),
     #[tag(144)]
-    SecurityResponse(SecurityResponse<'a>),
+    SecurityResponse(SecurityResponse),
 }
 
 // FollowReport
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum FollowReport<'a> {
+enum FollowReport {
     #[tag(1)]
-    ResultNormalList(SequenceOf<AResultNormal<'a>>),
+    ResultNormalList(SequenceOf<AResultNormal>),
     #[tag(2)]
-    ResultRecordList(SequenceOf<AResultRecord<'a>>),
+    ResultRecordList(SequenceOf<AResultRecord>),
 }
 
 // TimeTag

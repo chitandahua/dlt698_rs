@@ -43,10 +43,10 @@ pub enum RegionType {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Region<'a> {
+pub struct Region {
     region_type: RegionType,
-    start: Box<Data<'a>>,
-    end: Box<Data<'a>>,
+    start: Box<Data>,
+    end: Box<Data>,
 }
 
 #[cfg(test)]

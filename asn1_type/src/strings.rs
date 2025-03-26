@@ -21,44 +21,44 @@ macro_rules! asn1_axdr_string {
         use crate::unsigned_integer::UnsignedInteger;
 
         #[derive(Debug, PartialEq, Eq)]
-        pub struct $name<'a> {
-            pub(crate) data: std::borrow::Cow<'a, str>,
+        pub struct $name {
+            pub(crate) data: String,
         }
 
-        impl<'a> $name<'a> {
-            pub const fn new(s: &'a str) -> Self {
+        impl $name {
+            pub fn new(s: &str) -> Self {
                 $name {
-                    data: std::borrow::Cow::Borrowed(s),
+                    data: s.to_owned(),
                 }
             }
 
             pub fn string(&self) -> String {
-                self.data.to_string()
+                self.data.to_owned()
             }
         }
 
-        impl<'a> AsRef<str> for $name<'a> {
+        impl AsRef<str> for $name {
             fn as_ref(&self) -> &str {
                 &self.data
             }
         }
 
-        impl<'a> From<&'a str> for $name<'a> {
-            fn from(s: &'a str) -> Self {
+        impl From<&str> for $name {
+            fn from(s: &str) -> Self {
                 Self::new(s)
             }
         }
 
-        impl From<String> for $name<'_> {
+        impl From<String> for $name {
             fn from(s: String) -> Self {
                 Self {
-                    data: std::borrow::Cow::Owned(s),
+                    data: s,
                 }
             }
         }
 
-        impl<'a> FromAxdr<'a> for $name<'a> {
-            fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+        impl FromAxdr<'_> for $name {
+            fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
                 let (bytes, len) = UnsignedInteger::from_axdr(bytes)?;
                 let len = len.as_usize()?;
 
@@ -72,7 +72,7 @@ macro_rules! asn1_axdr_string {
             }
         }
 
-        impl ToAxdr for $name<'_> {
+        impl ToAxdr for $name {
             fn to_axdr_len(&self) -> Result<usize> {
                 Ok(
                     UnsignedInteger::from_usize(self.data.as_bytes().len()).to_axdr_len()?
@@ -105,42 +105,42 @@ macro_rules! asn1_axdr_fixed_string {
     (IMPL $name:ident, $sname:expr) => {
 
         #[derive(Debug, PartialEq, Eq)]
-        pub struct $name<'a, const N: usize> {
-            pub(crate) data: std::borrow::Cow<'a, str>,
+        pub struct $name<const N: usize> {
+            pub(crate) data: String,
         }
 
-        impl<'a, const N: usize> $name<'a, N> {
-            const fn new(s: &'a str) -> Self {
+        impl<const N: usize> $name<N> {
+            fn new(s: &str) -> Self {
                 Self {
-                    data: std::borrow::Cow::Borrowed(s),
+                    data: s.to_owned(),
                 }
             }
 
             pub fn string(&self) -> String {
-                self.data.to_string()
+                self.data.to_owned()
             }
         }
 
-        impl<'a, const N: usize> AsRef<str> for $name<'a, N> {
+        impl<const N: usize> AsRef<str> for $name<N> {
             fn as_ref(&self) -> &str {
                 &self.data
             }
         }
 
-        impl<'a, const N: usize> TryFrom<&'a str> for $name<'a, N> {
+        impl<const N: usize> TryFrom<&str> for $name<N> {
             type Error = asn1_rs::Error;
-            fn try_from(s: &'a str) -> Result<Self> {
+            fn try_from(s: &str) -> Result<Self> {
                 if s.len() != N {
                     return Err(asn1_rs::Error::InvalidLength);
                 }
 
                 Ok(Self {
-                    data: std::borrow::Cow::Borrowed(s),
+                    data: s.to_string(),
                 })
             }
         }
 
-        impl<const N: usize> TryFrom<String> for $name<'_, N> {
+        impl<const N: usize> TryFrom<String> for $name<N> {
             type Error = asn1_rs::Error;
             fn try_from(s: String) -> Result<Self, Self::Error> {
                 if s.len() != N {
@@ -148,24 +148,24 @@ macro_rules! asn1_axdr_fixed_string {
                 }
 
                 Ok(Self {
-                    data: std::borrow::Cow::Owned(s),
+                    data: s,
                 })
             }
         }
 
-        impl<'a, const N: usize> FromAxdr<'a> for $name<'a, N> {
-            fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+        impl<const N: usize> FromAxdr<'_> for $name<N> {
+            fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
                 if bytes.len() < N {
                     return Err(asn1_rs::Err::Error(Error::InvalidLength));
                 }
 
-                <$name<'a, N>>::test_valid_charset(&bytes[0..N])?;
+                <$name<N>>::test_valid_charset(&bytes[0..N])?;
 
-                Ok((&bytes[N..], <$name<'a, N>>::new(std::str::from_utf8(&bytes[0..N]).map_err(|_| asn1_rs::Err::Error(Error::StringInvalidCharset))?)))
+                Ok((&bytes[N..], <$name<N>>::new(std::str::from_utf8(&bytes[0..N]).map_err(|_| asn1_rs::Err::Error(Error::StringInvalidCharset))?)))
             }
         }
 
-        impl<const N: usize> ToAxdr for $name<'_, N> {
+        impl<const N: usize> ToAxdr for $name<N> {
             fn to_axdr_len(&self) -> Result<usize> {
                 Ok(self.data.as_bytes().len())
             }

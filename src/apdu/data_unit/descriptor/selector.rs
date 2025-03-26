@@ -12,81 +12,81 @@ pub enum CSD {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum RSD<'a> {
+pub enum RSD {
     #[tag(0)]
     Null(Null),
     #[tag(1)]
-    Selector1(Selector1<'a>),
+    Selector1(Selector1),
     #[tag(2)]
-    Selector2(Selector2<'a>),
+    Selector2(Selector2),
     #[tag(3)]
-    Selector3(Selector3<'a>),
+    Selector3(Selector3),
     #[tag(4)]
-    Selector4(Selector4<'a>),
+    Selector4(Selector4),
     #[tag(5)]
-    Selector5(Selector5<'a>),
+    Selector5(Selector5),
     #[tag(6)]
-    Selector6(Selector6<'a>),
+    Selector6(Selector6),
     #[tag(7)]
-    Selector7(Selector7<'a>),
+    Selector7(Selector7),
     #[tag(8)]
-    Selector8(Selector8<'a>),
+    Selector8(Selector8),
     #[tag(9)]
     Selector9(Selector9),
     #[tag(10)]
-    Selector10(Selector10<'a>),
+    Selector10(Selector10),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector1<'a> {
+pub struct Selector1 {
     oad: OAD,
-    value: Box<Data<'a>>,
+    value: Box<Data>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector2<'a> {
+pub struct Selector2 {
     oad: OAD,
-    start: Box<Data<'a>>,
-    end: Box<Data<'a>>,
-    interval: Box<Data<'a>>,
+    start: Box<Data>,
+    end: Box<Data>,
+    interval: Box<Data>,
 }
 
-pub type Selector3<'a> = SequenceOf<Selector2<'a>>;
+pub type Selector3 = SequenceOf<Selector2>;
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector4<'a> {
+pub struct Selector4 {
     launch_time: DateTimeS,
-    ms: MS<'a>,
+    ms: MS,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector5<'a> {
+pub struct Selector5 {
     save_time: DateTimeS,
-    ms: MS<'a>,
+    ms: MS,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector6<'a> {
+pub struct Selector6 {
     launch_time_start: DateTimeS,
     launch_time_end: DateTimeS,
     interval: TI,
-    ms: MS<'a>,
+    ms: MS,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector7<'a> {
+pub struct Selector7 {
     save_time_start: DateTimeS,
     save_time_end: DateTimeS,
     interval: TI,
-    ms: MS<'a>,
+    ms: MS,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector8<'a> {
+pub struct Selector8 {
     success_time_start: DateTimeS,
     success_time_end: DateTimeS,
     interval: TI,
-    ms: MS<'a>,
+    ms: MS,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
@@ -95,9 +95,9 @@ pub struct Selector9 {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct Selector10<'a> {
+pub struct Selector10 {
     last_n_record: Unsigned,
-    ms: MS<'a>,
+    ms: MS,
 }
 
 pub type RCSD = SequenceOf<CSD>;

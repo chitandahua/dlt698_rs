@@ -2,20 +2,20 @@ use asn1_type::{Null, OctetString, VisibleString};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ConnectMechanismInfo<'a> {
+pub enum ConnectMechanismInfo {
     #[tag(0)]
     NullSecurity(Null),
     #[tag(1)]
-    PasswordSecurity(VisibleString<'a>),
+    PasswordSecurity(VisibleString),
     #[tag(2)]
     SymmetrySecurity {
-        data: OctetString<'a>,
-        signature: OctetString<'a>,
+        data: OctetString,
+        signature: OctetString,
     },
     #[tag(3)]
     SignatureSecurity {
-        data: OctetString<'a>,
-        signature: OctetString<'a>,
+        data: OctetString,
+        signature: OctetString,
     },
 }
 
@@ -38,7 +38,7 @@ pub enum ConnectResult {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ConnectResponseInfo<'a> {
+pub struct ConnectResponseInfo {
     result: ConnectResult,
-    security_data: Option<OctetString<'a>>,
+    security_data: Option<OctetString>,
 }

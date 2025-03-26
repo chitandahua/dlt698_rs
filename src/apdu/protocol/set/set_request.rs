@@ -4,36 +4,36 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // SetRequestNormal
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetRequestNormal<'a> {
+pub struct SetRequestNormal {
     piid: PIID,
     oad: OAD,
-    data: Data<'a>,
+    data: Data,
 }
 
 // SetRequestNormalList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetRequestNormalList<'a> {
+pub struct SetRequestNormalList {
     piid: PIID,
-    attributes: SequenceOf<SetRequestNormalAttribute<'a>>,
+    attributes: SequenceOf<SetRequestNormalAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetRequestNormalAttribute<'a> {
+pub struct SetRequestNormalAttribute {
     oad: OAD,
-    data: Data<'a>,
+    data: Data,
 }
 
 // SetThenGetRequestNormalList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetThenGetRequestNormalList<'a> {
+pub struct SetThenGetRequestNormalList {
     piid: PIID,
-    attributes: SequenceOf<SetThenGetRequestNormalAttribute<'a>>,
+    attributes: SequenceOf<SetThenGetRequestNormalAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetThenGetRequestNormalAttribute<'a> {
+pub struct SetThenGetRequestNormalAttribute {
     oad: OAD,
-    data: Data<'a>,
+    data: Data,
     read_oad: OAD,
     delay: Unsigned,
 }

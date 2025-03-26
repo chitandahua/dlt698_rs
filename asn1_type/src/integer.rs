@@ -1,20 +1,17 @@
 use super::is_highest_bit_set;
 use super::traits::{FromAxdr, ToAxdr};
 use crate::{Error, ParseResult, Result, SerializeResult};
-use std::borrow::Cow;
 use std::io::Write;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct Integer<'a> {
-    pub(crate) data: Cow<'a, [u8]>,
+pub struct Integer {
+    pub(crate) data: Vec<u8>,
 }
 
-impl<'a> Integer<'a> {
+impl Integer {
     #[inline]
-    pub const fn new(s: &'a [u8]) -> Self {
-        Integer {
-            data: Cow::Borrowed(s),
-        }
+    pub fn new(s: &[u8]) -> Self {
+        Integer { data: s.to_vec() }
     }
 
     pub fn from_const_array<const N: usize>(b: [u8; N]) -> Self {
@@ -22,9 +19,7 @@ impl<'a> Integer<'a> {
             let mut bytes = vec![0];
             bytes.extend_from_slice(&b);
 
-            Integer {
-                data: Cow::Owned(bytes),
-            }
+            Integer { data: bytes }
         } else {
             let mut idx = 0;
 
@@ -37,7 +32,7 @@ impl<'a> Integer<'a> {
             }
 
             Integer {
-                data: Cow::Owned(b[idx..].to_vec()),
+                data: b[idx..].to_vec(),
             }
         }
     }
@@ -53,12 +48,10 @@ impl<'a> Integer<'a> {
         }
 
         if idx == b.len() {
-            Integer {
-                data: Cow::Borrowed(&[0]),
-            }
+            Integer { data: vec![0] }
         } else {
             Integer {
-                data: Cow::Owned(b[idx..].to_vec()),
+                data: b[idx..].to_vec(),
             }
         }
     }
@@ -74,16 +67,16 @@ impl<'a> Integer<'a> {
 
 macro_rules! impl_from_to {
     ($ty:ty, $from:ident, $to:ident) => {
-        impl From<$ty> for Integer<'_> {
+        impl From<$ty> for Integer {
             fn from(i: $ty) -> Self {
                 Self::$from(i)
             }
         }
 
-        impl TryFrom<Integer<'_>> for $ty {
+        impl TryFrom<Integer> for $ty {
             type Error = Error;
 
-            fn try_from(value: Integer<'_>) -> Result<Self> {
+            fn try_from(value: Integer) -> Result<Self> {
                 value.$to()
             }
         }
@@ -91,7 +84,7 @@ macro_rules! impl_from_to {
     (IMPL SIGNED $ty:ty, $from:ident, $to:ident) => {
         impl_from_to!($ty, $from, $to);
 
-        impl Integer<'_> {
+        impl Integer {
             pub fn $to(&self) -> Result<$ty> {
                 let size = std::mem::size_of::<$ty>();
                 let bytes = self.as_ref();
@@ -123,7 +116,7 @@ macro_rules! impl_from_to {
     (IMPL UNSIGNED $ty:ty, $from:ident, $to:ident) => {
         impl_from_to!($ty, $from, $to);
 
-        impl Integer<'_> {
+        impl Integer {
             pub fn $to(&self) -> Result<$ty> {
                 let size = std::mem::size_of::<$ty>();
                 let bytes = self.as_ref();
@@ -163,14 +156,14 @@ impl_from_to!(UNSIGNED u32, from_u32, as_u32);
 impl_from_to!(UNSIGNED u64, from_u64, as_u64);
 impl_from_to!(UNSIGNED u128, from_u128, as_u128);
 
-impl AsRef<[u8]> for Integer<'_> {
+impl AsRef<[u8]> for Integer {
     fn as_ref(&self) -> &[u8] {
-        &self.data
+        self.data.as_slice()
     }
 }
 
-impl<'a> FromAxdr<'a> for Integer<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+impl FromAxdr<'_> for Integer {
+    fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
         // 判断是否有长度区
         if !is_highest_bit_set(bytes) {
             if bytes.len() < 1 {
@@ -187,7 +180,7 @@ impl<'a> FromAxdr<'a> for Integer<'a> {
     }
 }
 
-impl ToAxdr for Integer<'_> {
+impl ToAxdr for Integer {
     fn to_axdr_len(&self) -> Result<usize> {
         Ok(if self.need_length() { 1 } else { 0 } + self.as_ref().len())
     }
@@ -209,8 +202,8 @@ impl ToAxdr for Integer<'_> {
 
 macro_rules! impl_axdr {
     ($ty:ty) => {
-        impl<'a> FromAxdr<'a> for $ty {
-            fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+        impl FromAxdr<'_> for $ty {
+            fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
                 let size = std::mem::size_of::<$ty>();
                 if bytes.len() < size {
                     return Err(asn1_rs::Err::Error(Error::InvalidLength));

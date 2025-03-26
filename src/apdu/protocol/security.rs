@@ -4,56 +4,56 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // SecurityRequest
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SecurityRequest<'a> {
-    application_data_unit: RequestApplicationDataUnit<'a>,
-    data_validation_info: RequestDataValidationInfo<'a>,
+pub struct SecurityRequest {
+    application_data_unit: RequestApplicationDataUnit,
+    data_validation_info: RequestDataValidationInfo,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum RequestApplicationDataUnit<'a> {
+pub enum RequestApplicationDataUnit {
     #[tag(0)]
-    Plain(OctetString<'a>),
+    Plain(OctetString),
     #[tag(1)]
-    Encrypted(OctetString<'a>),
+    Encrypted(OctetString),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum RequestDataValidationInfo<'a> {
+pub enum RequestDataValidationInfo {
     #[tag(0)]
-    SidMac(SIDMAC<'a>),
+    SidMac(SIDMAC),
     #[tag(1)]
-    Rn(RN<'a>),
+    Rn(RN),
     #[tag(2)]
-    RnMac(RNMAC<'a>),
+    RnMac(RNMAC),
     #[tag(3)]
-    Sid(SID<'a>),
+    Sid(SID),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct RNMAC<'a> {
-    rn: RN<'a>,
-    mac: MAC<'a>,
+pub struct RNMAC {
+    rn: RN,
+    mac: MAC,
 }
 
 // SecurityResponse
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SecurityResponse<'a> {
-    application_data_unit: ResponseApplicationDataUnit<'a>,
-    data_validation_info: Option<ResponseDataValidationInfo<'a>>,
+pub struct SecurityResponse {
+    application_data_unit: ResponseApplicationDataUnit,
+    data_validation_info: Option<ResponseDataValidationInfo>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ResponseApplicationDataUnit<'a> {
+pub enum ResponseApplicationDataUnit {
     #[tag(0)]
-    Plain(OctetString<'a>),
+    Plain(OctetString),
     #[tag(1)]
-    Encrypted(OctetString<'a>),
+    Encrypted(OctetString),
     #[tag(2)]
     Dar(DAR),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ResponseDataValidationInfo<'a> {
+pub enum ResponseDataValidationInfo {
     #[tag(0)]
-    Mac(MAC<'a>),
+    Mac(MAC),
 }

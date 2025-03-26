@@ -1,20 +1,17 @@
 use super::is_highest_bit_set;
 use super::traits::{FromAxdr, ToAxdr};
 use crate::{Error, ParseResult, Result, SerializeResult};
-use std::borrow::Cow;
 use std::io::Write;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct UnsignedInteger<'a> {
-    pub(crate) data: Cow<'a, [u8]>,
+pub struct UnsignedInteger {
+    pub(crate) data: Vec<u8>,
 }
 
-impl<'a> UnsignedInteger<'a> {
+impl UnsignedInteger {
     #[inline]
-    pub const fn new(s: &'a [u8]) -> Self {
-        UnsignedInteger {
-            data: Cow::Borrowed(s),
-        }
+    pub fn new(s: &[u8]) -> Self {
+        UnsignedInteger { data: s.to_vec() }
     }
 
     pub fn from_const_array<const N: usize>(b: [u8; N]) -> Self {
@@ -30,7 +27,7 @@ impl<'a> UnsignedInteger<'a> {
         }
 
         UnsignedInteger {
-            data: Cow::Owned(b[idx..].to_vec()),
+            data: b[idx..].to_vec(),
         }
     }
 
@@ -45,21 +42,21 @@ impl<'a> UnsignedInteger<'a> {
 
 macro_rules! impl_from_to {
     ($ty:ty, $from:ident, $to:ident) => {
-        impl From<$ty> for UnsignedInteger<'_> {
+        impl From<$ty> for UnsignedInteger {
             fn from(i: $ty) -> Self {
                 Self::$from(i)
             }
         }
 
-        impl TryFrom<UnsignedInteger<'_>> for $ty {
+        impl TryFrom<UnsignedInteger> for $ty {
             type Error = Error;
 
-            fn try_from(value: UnsignedInteger<'_>) -> Result<Self> {
+            fn try_from(value: UnsignedInteger) -> Result<Self> {
                 value.$to()
             }
         }
 
-        impl UnsignedInteger<'_> {
+        impl UnsignedInteger {
             pub fn $to(&self) -> Result<$ty> {
                 let size = std::mem::size_of::<$ty>();
                 let bytes = self.as_ref();
@@ -88,14 +85,14 @@ impl_from_to!(u64, from_u64, as_u64);
 impl_from_to!(u128, from_u128, as_u128);
 impl_from_to!(usize, from_usize, as_usize);
 
-impl AsRef<[u8]> for UnsignedInteger<'_> {
+impl AsRef<[u8]> for UnsignedInteger {
     fn as_ref(&self) -> &[u8] {
         &self.data
     }
 }
 
-impl<'a> FromAxdr<'a> for UnsignedInteger<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+impl FromAxdr<'_> for UnsignedInteger {
+    fn from_axdr(bytes: &[u8]) -> ParseResult<'_, Self> {
         // 判断是否有长度区
         if !is_highest_bit_set(bytes) {
             if bytes.len() < 1 {
@@ -112,7 +109,7 @@ impl<'a> FromAxdr<'a> for UnsignedInteger<'a> {
     }
 }
 
-impl ToAxdr for UnsignedInteger<'_> {
+impl ToAxdr for UnsignedInteger {
     fn to_axdr_len(&self) -> Result<usize> {
         Ok(if self.need_length() { 1 } else { 0 } + self.as_ref().len())
     }

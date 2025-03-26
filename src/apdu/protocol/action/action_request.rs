@@ -4,36 +4,36 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // ActionRequest
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionRequest<'a> {
+pub struct ActionRequest {
     piid: PIID,
     omd: OMD,
-    parameter: Data<'a>,
+    parameter: Data,
 }
 
 // ActionRequestList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionRequestList<'a> {
+pub struct ActionRequestList {
     piid: PIID,
-    attributes: SequenceOf<ActionRequestAttribute<'a>>,
+    attributes: SequenceOf<ActionRequestAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionRequestAttribute<'a> {
+pub struct ActionRequestAttribute {
     omd: OMD,
-    parameter: Data<'a>,
+    parameter: Data,
 }
 
 // ActionThenGetRequestNormalList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionThenGetRequestNormalList<'a> {
+pub struct ActionThenGetRequestNormalList {
     piid: PIID,
-    attributes: SequenceOf<ActionThenGetRequestNormalAttribute<'a>>,
+    attributes: SequenceOf<ActionThenGetRequestNormalAttribute>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionThenGetRequestNormalAttribute<'a> {
+pub struct ActionThenGetRequestNormalAttribute {
     omd: OMD,
-    parameter: Data<'a>,
+    parameter: Data,
     oad: OAD,
     delay: Unsigned,
 }

@@ -15,35 +15,35 @@ use crate::apdu::data_unit::{
 };
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ScalerUnit<'a> {
-    scaler: Integer<'a>,
+pub struct ScalerUnit {
+    scaler: Integer,
     unit: Enumerated,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum Data<'a> {
+pub enum Data {
     #[tag(0)]
     Null(Null),
     #[tag(1)]
-    Array(SequenceOf<Data<'a>>),
+    Array(SequenceOf<Data>),
     #[tag(2)]
-    Structure(SequenceOf<Data<'a>>),
+    Structure(SequenceOf<Data>),
     #[tag(3)]
     Bool(Boolean),
     #[tag(4)]
-    BitString(BitString<'a>),
+    BitString(BitString),
     #[tag(5)]
     DoubleLong(DoubleLong),
     #[tag(6)]
     DoubleLongUnsigned(DoubleLongUnsigned),
     #[tag(9)]
-    OctetString(OctetString<'a>),
+    OctetString(OctetString),
     #[tag(10)]
-    VisibleString(VisibleString<'a>),
+    VisibleString(VisibleString),
     #[tag(12)]
-    Utf8String(Utf8String<'a>),
+    Utf8String(Utf8String),
     #[tag(15)]
-    Integer(Integer<'a>),
+    Integer(Integer),
     #[tag(16)]
     Long(Long),
     #[tag(17)]
@@ -79,39 +79,39 @@ pub enum Data<'a> {
     #[tag(84)]
     TI(TI),
     #[tag(85)]
-    TSA(TSA<'a>),
+    TSA(TSA),
     #[tag(86)]
-    MAC(MAC<'a>),
+    MAC(MAC),
     #[tag(87)]
-    RN(RN<'a>),
+    RN(RN),
     #[tag(88)]
-    Region(Region<'a>),
+    Region(Region),
     #[tag(89)]
-    ScalerUnit(ScalerUnit<'a>),
+    ScalerUnit(ScalerUnit),
     #[tag(90)]
-    RSD(RSD<'a>),
+    RSD(RSD),
     #[tag(91)]
     CSD(CSD),
     #[tag(92)]
-    MS(MS<'a>),
+    MS(MS),
     #[tag(93)]
-    SID(SID<'a>),
+    SID(SID),
     #[tag(94)]
-    SIDMAC(SIDMAC<'a>),
+    SIDMAC(SIDMAC),
     #[tag(95)]
     COMDCB(COMDCB),
     #[tag(96)]
     RCSD(RCSD),
 }
 
-impl<'a> FromAxdr<'a> for Box<Data<'a>> {
-    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self, Error> {
+impl FromAxdr<'_> for Box<Data> {
+    fn from_axdr(bytes: &[u8]) -> ParseResult<Self, Error> {
         let (bytes, data) = Data::from_axdr(bytes)?;
         Ok((bytes, Box::new(data)))
     }
 }
 
-impl ToAxdr for Box<Data<'_>> {
+impl ToAxdr for Box<Data> {
     fn to_axdr_len(&self) -> Result<usize> {
         self.as_ref().to_axdr_len()
     }

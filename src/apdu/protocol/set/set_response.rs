@@ -26,14 +26,14 @@ pub struct SetResponseNormalResult {
 
 // SetThenGetResponseNormalList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetThenGetResponseNormalList<'a> {
+pub struct SetThenGetResponseNormalList {
     piid_acd: PIID_ACD,
-    result_list: SequenceOf<SetThenGetResponseNormalResult<'a>>,
+    result_list: SequenceOf<SetThenGetResponseNormalResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct SetThenGetResponseNormalResult<'a> {
+pub struct SetThenGetResponseNormalResult {
     oad: OAD,
     result: DAR,
-    a_result_normal: AResultNormal<'a>,
+    a_result_normal: AResultNormal,
 }

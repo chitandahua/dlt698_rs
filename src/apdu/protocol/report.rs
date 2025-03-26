@@ -7,19 +7,19 @@ pub use report_response::*;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ReportNotification<'a> {
+pub enum ReportNotification {
     #[tag(1)]
-    ReportNotificationList(ReportNotificationList<'a>),
+    ReportNotificationList(ReportNotificationList),
     #[tag(2)]
-    ReportNotificationRecordList(ReportNotificationRecordList<'a>),
+    ReportNotificationRecordList(ReportNotificationRecordList),
     #[tag(3)]
-    ReportNotificationTransData(ReportNotificationTransData<'a>),
+    ReportNotificationTransData(ReportNotificationTransData),
     #[tag(4)]
-    ReportRequestClientService(ReportRequestClientService<'a>),
+    ReportRequestClientService(ReportRequestClientService),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ReportResponse<'a> {
+pub enum ReportResponse {
     #[tag(1)]
     ReportResponseList(ReportResponseList),
     #[tag(2)]
@@ -27,5 +27,5 @@ pub enum ReportResponse<'a> {
     #[tag(3)]
     ReportResponseTransData(ReportResponseTransData),
     #[tag(4)]
-    ReportResponseClientService(ReportResponseClientService<'a>),
+    ReportResponseClientService(ReportResponseClientService),
 }

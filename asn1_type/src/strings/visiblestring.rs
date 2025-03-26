@@ -15,13 +15,13 @@ fn test_visible_valid_charset(i: &[u8]) -> Result<()> {
     Ok(())
 }
 
-impl TestValidCharset for VisibleString<'_> {
+impl TestValidCharset for VisibleString {
     fn test_valid_charset(i: &[u8]) -> Result<()> {
         test_visible_valid_charset(i)
     }
 }
 
-impl<const N: usize> TestValidCharset for FixedVisibleString<'_, N> {
+impl<const N: usize> TestValidCharset for FixedVisibleString<N> {
     fn test_valid_charset(i: &[u8]) -> Result<()> {
         test_visible_valid_charset(i)
     }

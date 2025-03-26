@@ -2,7 +2,6 @@ use super::traits::{FromAxdr, ToAxdr};
 use super::unsigned_integer::UnsignedInteger;
 use crate::{Error, ParseResult, Result, SerializeResult};
 use std::array::TryFromSliceError;
-use std::borrow::Cow;
 
 // 定长BitString
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -65,16 +64,16 @@ impl<const N: usize, const BYTES: usize> ToAxdr for FixedBitString<N, BYTES> {
 
 // 变长BitString
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct BitString<'a> {
+pub struct BitString {
     pub unused_bits: u8,
-    pub data: Cow<'a, [u8]>,
+    pub data: Vec<u8>,
 }
 
-impl<'a> BitString<'a> {
-    pub const fn new(unused_bits: u8, s: &'a [u8]) -> Self {
+impl BitString {
+    pub fn new(unused_bits: u8, s: &[u8]) -> Self {
         BitString {
             unused_bits,
-            data: Cow::Borrowed(s),
+            data: s.to_vec(),
         }
     }
 
@@ -89,9 +88,9 @@ impl<'a> BitString<'a> {
     }
 }
 
-impl AsRef<[u8]> for BitString<'_> {
+impl AsRef<[u8]> for BitString {
     fn as_ref(&self) -> &[u8] {
-        &self.data
+        self.data.as_slice()
     }
 }
 
@@ -105,8 +104,8 @@ fn unused_bits(bit_length: usize) -> u8 {
     8 - (bit_length % 8) as u8
 }
 
-impl<'a> FromAxdr<'a> for BitString<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+impl FromAxdr<'_> for BitString {
+    fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
         // TODO 最前面的Length为变长Integer的编码? 但是没有负数 没有补码。。。
         let (bytes, int) = UnsignedInteger::from_axdr(bytes)?;
         let len = int.as_usize()?;
@@ -125,7 +124,7 @@ impl<'a> FromAxdr<'a> for BitString<'a> {
     }
 }
 
-impl ToAxdr for BitString<'_> {
+impl ToAxdr for BitString {
     fn to_axdr_len(&self) -> Result<usize> {
         let len = self.as_ref().len();
         if len > 0x7f {
@@ -154,7 +153,7 @@ mod tests {
     fn test_bitstring_decode() {
         let (_, obj) = BitString::from_axdr(&[0x0d, 0x67, 0x50]).unwrap();
         assert_eq!(obj.unused_bits, 3);
-        assert_eq!(obj.data.as_ref(), &[0x67, 0x50]);
+        assert_eq!(obj.as_ref(), &[0x67, 0x50]);
 
         let (_, obj) = BitString::from_axdr(&[
             0x81, 0x83, 0x12, 0x23, 0x67, 0x50, 0x35, 0x12, 0x23, 0x67, 0x50, 0x89, 0x12, 0x23,
@@ -163,7 +162,7 @@ mod tests {
         .unwrap();
         assert_eq!(obj.unused_bits, 5);
         assert_eq!(
-            obj.data.as_ref(),
+            obj.as_ref(),
             &[
                 0x12, 0x23, 0x67, 0x50, 0x35, 0x12, 0x23, 0x67, 0x50, 0x89, 0x12, 0x23, 0x67, 0x50,
                 0x89, 0x12, 0x80

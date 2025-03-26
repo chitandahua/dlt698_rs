@@ -5,29 +5,29 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // ReportNotificationList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ReportNotificationList<'a> {
+pub struct ReportNotificationList {
     piid_acd: PIID_ACD,
-    a_result_normal: SequenceOf<AResultNormal<'a>>,
+    a_result_normal: SequenceOf<AResultNormal>,
 }
 
 // ReportNotificationRecordList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ReportNotificationRecordList<'a> {
+pub struct ReportNotificationRecordList {
     piid_acd: PIID_ACD,
-    a_result_record: SequenceOf<AResultRecord<'a>>,
+    a_result_record: SequenceOf<AResultRecord>,
 }
 
 // ReportNotificationTransData
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ReportNotificationTransData<'a> {
+pub struct ReportNotificationTransData {
     piid_acd: PIID_ACD,
     oad: OAD,
-    trans_data: SequenceOf<OctetString<'a>>,
+    trans_data: SequenceOf<OctetString>,
 }
 
 // ReportRequestClientService
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ReportRequestClientService<'a> {
+pub struct ReportRequestClientService {
     piid_acd: PIID_ACD,
-    service_data: OctetString<'a>,
+    service_data: OctetString,
 }

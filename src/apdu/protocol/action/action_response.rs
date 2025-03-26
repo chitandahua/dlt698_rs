@@ -5,38 +5,38 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // ActionResponseNormal
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionResponseNormal<'a> {
+pub struct ActionResponseNormal {
     piid_acd: PIID_ACD,
     omd: OMD,
     result: DAR,
-    response_data: Option<Data<'a>>,
+    response_data: Option<Data>,
 }
 
 // ActionResponseNormalList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionResponseNormalList<'a> {
+pub struct ActionResponseNormalList {
     piid_acd: PIID_ACD,
-    action_results: SequenceOf<ActionResponseNormalResult<'a>>,
+    action_results: SequenceOf<ActionResponseNormalResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionResponseNormalResult<'a> {
+pub struct ActionResponseNormalResult {
     omd: OMD,
     result: DAR,
-    response_data: Option<Data<'a>>,
+    response_data: Option<Data>,
 }
 
 // ActionThenGetResponseNormalList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionThenGetResponseNormalList<'a> {
+pub struct ActionThenGetResponseNormalList {
     piid_acd: PIID_ACD,
-    action_results: SequenceOf<ActionThenGetResponseNormalResult<'a>>,
+    action_results: SequenceOf<ActionThenGetResponseNormalResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ActionThenGetResponseNormalResult<'a> {
+pub struct ActionThenGetResponseNormalResult {
     omd: OMD,
     result: DAR,
-    response_data: Option<Data<'a>>,
-    a_result_normal: AResultNormal<'a>,
+    response_data: Option<Data>,
+    a_result_normal: AResultNormal,
 }

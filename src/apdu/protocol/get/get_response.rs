@@ -6,61 +6,61 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // GetResponseNormal
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetResponseNormal<'a> {
+pub struct GetResponseNormal {
     piid_acd: PIID_ACD,
-    a_result_normal: SequenceOf<AResultNormal<'a>>,
+    a_result_normal: SequenceOf<AResultNormal>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct AResultNormal<'a> {
+pub struct AResultNormal {
     oad: OAD,
-    get_result: GetResult<'a>,
+    get_result: GetResult,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum GetResult<'a> {
+pub enum GetResult {
     #[tag(0)]
     Dar(DAR),
     #[tag(1)]
-    Data(Data<'a>),
+    Data(Data),
 }
 
 // GetResponseNormalList∷
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetResponseNormalList<'a> {
+pub struct GetResponseNormalList {
     piid_acd: PIID_ACD,
-    a_result_normal: SequenceOf<AResultNormal<'a>>,
+    a_result_normal: SequenceOf<AResultNormal>,
 }
 
 // GetResponseRecord
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetResponseRecord<'a> {
+pub struct GetResponseRecord {
     piid_acd: PIID_ACD,
-    a_result_record: AResultRecord<'a>,
+    a_result_record: AResultRecord,
 }
 
 // 由于ARecordRow中的定义并不是SequenceOf 是根据RCSD里面CSD的数量决定的 故不能直接derive宏
 #[derive(Debug, PartialEq, Eq, ToAxdrSequence)]
-pub struct AResultRecord<'a> {
+pub struct AResultRecord {
     oad: OAD,
     rcsd: RCSD,
-    record_result: RecordResult<'a>,
+    record_result: RecordResult,
 }
 
 #[derive(Debug, PartialEq, Eq, ToAxdrSequence)]
-pub enum RecordResult<'a> {
+pub enum RecordResult {
     #[tag(0)]
     Dar(DAR),
     #[tag(1)]
-    RecordRows(SequenceOf<ARecordRow<'a>>),
+    RecordRows(SequenceOf<ARecordRow>),
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct ARecordRow<'a> {
-    data: SequenceOf<Data<'a>>,
+pub struct ARecordRow {
+    data: SequenceOf<Data>,
 }
 
-impl ToAxdr for ARecordRow<'_> {
+impl ToAxdr for ARecordRow {
     fn to_axdr_len(&self) -> Result<usize> {
         Ok(if self.data.is_empty() {
             0
@@ -82,8 +82,8 @@ impl ToAxdr for ARecordRow<'_> {
     }
 }
 
-impl<'a> FromAxdr<'a> for AResultRecord<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> ParseResult<'a, Self> {
+impl FromAxdr<'_> for AResultRecord {
+    fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
         let (bytes, oad) = OAD::from_axdr(bytes)?;
         let (bytes, rcsd) = RCSD::from_axdr(bytes)?;
         let csd_num = rcsd.len();
@@ -126,44 +126,44 @@ impl<'a> FromAxdr<'a> for AResultRecord<'a> {
 
 // GetResponseRecordList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetResponseRecordList<'a> {
+pub struct GetResponseRecordList {
     piid_acd: PIID_ACD,
-    a_result_record: SequenceOf<AResultRecord<'a>>,
+    a_result_record: SequenceOf<AResultRecord>,
 }
 
 // GetResponseNext
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetResponseNext<'a> {
+pub struct GetResponseNext {
     piid_acd: PIID_ACD,
     last_fragment: Boolean,
     fragment_number: LongUnsigned,
-    fragment_response: FragmentResponse<'a>,
+    fragment_response: FragmentResponse,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum FragmentResponse<'a> {
+pub enum FragmentResponse {
     #[tag(0)]
     Dar(DAR),
     #[tag(1)]
-    AResultNormal(SequenceOf<AResultNormal<'a>>),
+    AResultNormal(SequenceOf<AResultNormal>),
     #[tag(2)]
-    AResultRecord(SequenceOf<AResultRecord<'a>>),
+    AResultRecord(SequenceOf<AResultRecord>),
 }
 
 // GetResponseMD5
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetResponseMD5<'a> {
+pub struct GetResponseMD5 {
     piid_acd: PIID_ACD,
     oad: OAD,
-    result: ResultMD5<'a>,
+    result: ResultMD5,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ResultMD5<'a> {
+pub enum ResultMD5 {
     #[tag(0)]
     Dar(DAR),
     #[tag(1)]
-    MD5(OctetString<'a>),
+    MD5(OctetString),
 }
 
 #[cfg(test)]

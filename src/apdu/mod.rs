@@ -5,14 +5,14 @@ use crate::apdu::protocol::{ClientApdu, LinkApdu, SecurityApdu, ServerApdu};
 
 enumx_derive::def_impls! {
     #[derive(Debug, PartialEq)]
-    pub enum Apdu<'a> {
+    pub enum Apdu {
         LinkApdu(LinkApdu),
-        ClientApdu(ClientApdu<'a>),
-        ServerApdu(ServerApdu<'a>),
-        SecurityApdu(SecurityApdu<'a>),
+        ClientApdu(ClientApdu),
+        ServerApdu(ServerApdu),
+        SecurityApdu(SecurityApdu),
     }
 
-    impl<'a> asn1_type::traits::ToAxdr for Apdu<'a>
+    impl asn1_type::traits::ToAxdr for Apdu
         where _Variants!(): asn1_type::traits::ToAxdr
     {
         fn to_axdr_len(&self) -> asn1_type::Result<usize> {
@@ -35,8 +35,8 @@ enumx_derive::def_impls! {
     }
 }
 
-impl<'a> asn1_type::traits::FromAxdr<'a> for Apdu<'a> {
-    fn from_axdr(bytes: &'a [u8]) -> asn1_type::ParseResult<'a, Self> {
+impl asn1_type::traits::FromAxdr<'_> for Apdu {
+    fn from_axdr(bytes: &[u8]) -> asn1_type::ParseResult<Self> {
         // 依次解析
         if let Ok((bytes, link_apdu)) = LinkApdu::from_axdr(bytes) {
             Ok((bytes, Apdu::LinkApdu(link_apdu)))

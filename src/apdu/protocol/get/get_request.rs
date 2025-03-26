@@ -21,22 +21,22 @@ pub struct GetRequestNormalList {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetRequestRecord<'a> {
+pub struct GetRequestRecord {
     piid: PIID,
-    get_record: GetRecord<'a>,
+    get_record: GetRecord,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct GetRecord<'a> {
+struct GetRecord {
     oad: OAD,
-    rsd: RSD<'a>,
+    rsd: RSD,
     rcsd: RCSD,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct GetRequestRecordList<'a> {
+pub struct GetRequestRecordList {
     piid: PIID,
-    get_record_list: SequenceOf<GetRecord<'a>>,
+    get_record_list: SequenceOf<GetRecord>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]

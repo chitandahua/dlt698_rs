@@ -7,37 +7,37 @@ pub use proxy_response::*;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ProxyRequest<'a> {
+pub enum ProxyRequest {
     #[tag(1)]
-    ProxyGetRequestList(ProxyGetRequestList<'a>),
+    ProxyGetRequestList(ProxyGetRequestList),
     #[tag(2)]
-    ProxyGetRequestRecord(ProxyGetRequestRecord<'a>),
+    ProxyGetRequestRecord(ProxyGetRequestRecord),
     #[tag(3)]
-    ProxySetRequestList(ProxySetRequestList<'a>),
+    ProxySetRequestList(ProxySetRequestList),
     #[tag(4)]
-    ProxySetThenGetRequestList(ProxySetThenGetRequestList<'a>),
+    ProxySetThenGetRequestList(ProxySetThenGetRequestList),
     #[tag(5)]
-    ProxyActionRequestList(ProxyActionRequestList<'a>),
+    ProxyActionRequestList(ProxyActionRequestList),
     #[tag(6)]
-    ProxyActionThenGetRequestList(ProxyActionThenGetRequestList<'a>),
+    ProxyActionThenGetRequestList(ProxyActionThenGetRequestList),
     #[tag(7)]
-    ProxyTransCommandRequest(ProxyTransCommandRequest<'a>),
+    ProxyTransCommandRequest(ProxyTransCommandRequest),
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum ProxyResponse<'a> {
+pub enum ProxyResponse {
     #[tag(1)]
-    ProxyGetResponseList(ProxyGetResponseList<'a>),
+    ProxyGetResponseList(ProxyGetResponseList),
     #[tag(2)]
-    ProxyGetResponseRecord(ProxyGetResponseRecord<'a>),
+    ProxyGetResponseRecord(ProxyGetResponseRecord),
     #[tag(3)]
-    ProxySetResponseList(ProxySetResponseList<'a>),
+    ProxySetResponseList(ProxySetResponseList),
     #[tag(4)]
-    ProxySetThenGetResponseList(ProxySetThenGetResponseList<'a>),
+    ProxySetThenGetResponseList(ProxySetThenGetResponseList),
     #[tag(5)]
-    ProxyActionResponseList(ProxyActionResponseList<'a>),
+    ProxyActionResponseList(ProxyActionResponseList),
     #[tag(6)]
-    ProxyActionThenGetResponseList(ProxyActionThenGetResponseList<'a>),
+    ProxyActionThenGetResponseList(ProxyActionThenGetResponseList),
     #[tag(7)]
-    ProxyTransCommandResponse(ProxyTransCommandResponse<'a>),
+    ProxyTransCommandResponse(ProxyTransCommandResponse),
 }

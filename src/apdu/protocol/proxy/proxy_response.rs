@@ -9,89 +9,89 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 // ProxyGetResponseList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyGetResponseList<'a> {
+pub struct ProxyGetResponseList {
     piid_acd: PIID_ACD,
-    server_results: SequenceOf<ProxyGetResponseResult<'a>>,
+    server_results: SequenceOf<ProxyGetResponseResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyGetResponseResult<'a> {
-    server_addr: TSA<'a>,
-    results: SequenceOf<AResultNormal<'a>>,
+pub struct ProxyGetResponseResult {
+    server_addr: TSA,
+    results: SequenceOf<AResultNormal>,
 }
 
 // ProxyGetResponseRecord
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyGetResponseRecord<'a> {
+pub struct ProxyGetResponseRecord {
     piid_acd: PIID_ACD,
-    server_addr: TSA<'a>,
-    a_result_record: AResultRecord<'a>,
+    server_addr: TSA,
+    a_result_record: AResultRecord,
 }
 
 // ProxySetResponseList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxySetResponseList<'a> {
+pub struct ProxySetResponseList {
     piid_acd: PIID_ACD,
-    server_results: SequenceOf<ProxySetResponseResult<'a>>,
+    server_results: SequenceOf<ProxySetResponseResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxySetResponseResult<'a> {
-    server_addr: TSA<'a>,
+pub struct ProxySetResponseResult {
+    server_addr: TSA,
     results: SequenceOf<SetResponseNormalResult>,
 }
 
 // ProxySetThenGetResponseList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxySetThenGetResponseList<'a> {
+pub struct ProxySetThenGetResponseList {
     piid_acd: PIID_ACD,
-    server_results: SequenceOf<ProxySetThenGetResponseResult<'a>>,
+    server_results: SequenceOf<ProxySetThenGetResponseResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxySetThenGetResponseResult<'a> {
-    server_addr: TSA<'a>,
-    results: SequenceOf<SetThenGetResponseNormalResult<'a>>,
+struct ProxySetThenGetResponseResult {
+    server_addr: TSA,
+    results: SequenceOf<SetThenGetResponseNormalResult>,
 }
 
 // ProxyActionResponseList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyActionResponseList<'a> {
+pub struct ProxyActionResponseList {
     piid_acd: PIID_ACD,
-    server_results: SequenceOf<ProxyActionResponseResult<'a>>,
+    server_results: SequenceOf<ProxyActionResponseResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxyActionResponseResult<'a> {
-    server_addr: TSA<'a>,
-    results: SequenceOf<ActionResponseNormalResult<'a>>,
+struct ProxyActionResponseResult {
+    server_addr: TSA,
+    results: SequenceOf<ActionResponseNormalResult>,
 }
 
 // ProxyActionThenGetResponseList
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyActionThenGetResponseList<'a> {
+pub struct ProxyActionThenGetResponseList {
     piid_acd: PIID_ACD,
-    server_results: SequenceOf<ProxyActionThenGetResponseResult<'a>>,
+    server_results: SequenceOf<ProxyActionThenGetResponseResult>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct ProxyActionThenGetResponseResult<'a> {
-    server_addr: TSA<'a>,
-    results: SequenceOf<ActionThenGetResponseNormalResult<'a>>,
+struct ProxyActionThenGetResponseResult {
+    server_addr: TSA,
+    results: SequenceOf<ActionThenGetResponseNormalResult>,
 }
 
 // ProxyTransCommandResponse
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ProxyTransCommandResponse<'a> {
+pub struct ProxyTransCommandResponse {
     piid_acd: PIID_ACD,
     oad: OAD,
-    trans_result: ProxyTransResult<'a>,
+    trans_result: ProxyTransResult,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum ProxyTransResult<'a> {
+enum ProxyTransResult {
     #[tag(0)]
     Dar(DAR),
     #[tag(1)]
-    Data(OctetString<'a>),
+    Data(OctetString),
 }

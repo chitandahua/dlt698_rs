@@ -24,7 +24,7 @@ pub struct ReportResponseTransData {
 
 // ReportResponseClientService
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub struct ReportResponseClientService<'a> {
+pub struct ReportResponseClientService {
     piid: PIID,
-    service_data: OctetString<'a>,
+    service_data: OctetString,
 }

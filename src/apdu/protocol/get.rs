@@ -7,15 +7,15 @@ pub use get_response::*;
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum GetRequest<'a> {
+pub enum GetRequest {
     #[tag(1)]
     GetRequestNormal(GetRequestNormal),
     #[tag(2)]
     GetRequestNormalList(GetRequestNormalList),
     #[tag(3)]
-    GetRequestRecord(GetRequestRecord<'a>),
+    GetRequestRecord(GetRequestRecord),
     #[tag(4)]
-    GetRequestRecordList(GetRequestRecordList<'a>),
+    GetRequestRecordList(GetRequestRecordList),
     #[tag(5)]
     GetRequestNext(GetRequestNext),
     #[tag(6)]
@@ -23,17 +23,17 @@ pub enum GetRequest<'a> {
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-pub enum GetResponse<'a> {
+pub enum GetResponse {
     #[tag(1)]
-    GetResponseNormal(GetResponseNormal<'a>),
+    GetResponseNormal(GetResponseNormal),
     #[tag(2)]
-    GetResponseNormalList(GetResponseNormalList<'a>),
+    GetResponseNormalList(GetResponseNormalList),
     #[tag(3)]
-    GetResponseRecord(GetResponseRecord<'a>),
+    GetResponseRecord(GetResponseRecord),
     #[tag(4)]
-    GetResponseRecordList(GetResponseRecordList<'a>),
+    GetResponseRecordList(GetResponseRecordList),
     #[tag(5)]
-    GetResponseNext(GetResponseNext<'a>),
+    GetResponseNext(GetResponseNext),
     #[tag(6)]
-    GetResponseMD5(GetResponseMD5<'a>),
+    GetResponseMD5(GetResponseMD5),
 }

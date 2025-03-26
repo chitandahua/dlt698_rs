@@ -30,4 +30,4 @@ pub use security::{MAC, RN, SID, SIDMAC};
 pub type PIID = Unsigned;
 #[allow(non_camel_case_types)]
 pub type PIID_ACD = Unsigned;
-pub type TSA<'a> = OctetString<'a>;
+pub type TSA = OctetString;
