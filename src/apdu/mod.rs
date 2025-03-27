@@ -6,10 +6,10 @@ use crate::apdu::protocol::{ClientApdu, LinkApdu, SecurityApdu, ServerApdu};
 enumx_derive::def_impls! {
     #[derive(Debug, PartialEq)]
     pub enum Apdu {
-        LinkApdu(LinkApdu),
-        ClientApdu(ClientApdu),
-        ServerApdu(ServerApdu),
-        SecurityApdu(SecurityApdu),
+        Link(LinkApdu),
+        Client(ClientApdu),
+        Server(ServerApdu),
+        Security(SecurityApdu),
     }
 
     impl asn1_type::traits::ToAxdr for Apdu
@@ -39,13 +39,13 @@ impl asn1_type::traits::FromAxdr<'_> for Apdu {
     fn from_axdr(bytes: &[u8]) -> asn1_type::ParseResult<Self> {
         // 依次解析
         if let Ok((bytes, link_apdu)) = LinkApdu::from_axdr(bytes) {
-            Ok((bytes, Apdu::LinkApdu(link_apdu)))
+            Ok((bytes, Apdu::Link(link_apdu)))
         } else if let Ok((bytes, client_apdu)) = ClientApdu::from_axdr(bytes) {
-            Ok((bytes, Apdu::ClientApdu(client_apdu)))
+            Ok((bytes, Apdu::Client(client_apdu)))
         } else if let Ok((bytes, server_apdu)) = ServerApdu::from_axdr(bytes) {
-            Ok((bytes, Apdu::ServerApdu(server_apdu)))
+            Ok((bytes, Apdu::Server(server_apdu)))
         } else if let Ok((bytes, security_apdu)) = SecurityApdu::from_axdr(bytes) {
-            Ok((bytes, Apdu::SecurityApdu(security_apdu)))
+            Ok((bytes, Apdu::Security(security_apdu)))
         } else {
             Err(asn1_type::Error::InvalidTag.into())
         }
@@ -63,7 +63,7 @@ mod tests {
         let (_, datetime) =
             DateTime::from_axdr(&[0x07, 0xe6, 0x01, 0x01, 0x01, 0x06, 0x21, 0x10, 0x12, 0x34])
                 .unwrap();
-        let apdu = Apdu::LinkApdu(LinkApdu::LinkRequest(LinkRequest::new(
+        let apdu = Apdu::Link(LinkApdu::LinkRequest(LinkRequest::new(
             0x10,
             RequestType::Heartbeat,
             0x0010,
@@ -79,7 +79,7 @@ mod tests {
         let (_, datetime) =
             DateTime::from_axdr(&[0x07, 0xe6, 0x01, 0x01, 0x01, 0x06, 0x21, 0x10, 0x12, 0x34])
                 .unwrap();
-        let result = Apdu::LinkApdu(LinkApdu::LinkRequest(LinkRequest::new(
+        let result = Apdu::Link(LinkApdu::LinkRequest(LinkRequest::new(
             0x10,
             RequestType::Heartbeat,
             0x0010,

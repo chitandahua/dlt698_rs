@@ -1,5 +1,6 @@
 use asn1_type::{LongUnsigned, Unsigned};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
+use chrono::{Datelike, Timelike, NaiveDateTime};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct DateTime {
@@ -11,6 +12,21 @@ pub struct DateTime {
     minute: Unsigned,
     second: Unsigned,
     milliseconds: LongUnsigned,
+}
+
+impl From<NaiveDateTime> for DateTime {
+    fn from(value: NaiveDateTime) -> Self {
+        Self {
+            year: value.year() as LongUnsigned,
+            month: value.month() as Unsigned,
+            day_of_month: value.day() as Unsigned,
+            day_of_week: value.weekday().number_from_monday() as Unsigned,
+            hour: value.hour() as Unsigned,
+            minute: value.minute() as Unsigned,
+            second: value.second() as Unsigned,
+            milliseconds: (value.nanosecond() / 1_000_000) as LongUnsigned,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]

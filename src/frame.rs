@@ -465,6 +465,24 @@ impl Frame {
         frame
     }
 
+    pub fn new_server_link_request(address_field: AddressField, user_data: UserData) -> Self {
+        let control_field = CtrlField::new()
+            .with_function_code(FunctionCode::LinkManagement)
+            .with_prm(Prm::Server)
+            .with_dir(Dir::Server);
+        Self::new(control_field, address_field, user_data)
+    }
+
+    pub fn is_server_request(&self) -> bool {
+        self.header.control_field.prm() == Prm::Server &&
+            self.header.control_field.dir() == Dir::Server
+    }
+
+    pub fn is_client_response(&self) -> bool {
+        self.header.control_field.prm() == Prm::Client &&
+            self.header.control_field.dir() == Dir::Client
+    }
+
     pub fn parse(src: &mut Cursor<&[u8]>) -> Result<Option<Self>> {
         //println!("parse frame: {}", hex::encode(src.get_ref()));
         let end = src.get_ref().len();
