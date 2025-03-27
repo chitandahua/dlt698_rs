@@ -3,6 +3,7 @@ use crate::apdu::Apdu;
 use crate::Result;
 use anyhow::{ensure, Ok};
 use asn1_type::traits::{FromAxdr, ToAxdr};
+use modular_bitfield::prelude::*;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use std::io::Cursor;
 use strum_macros::EnumString;
@@ -11,29 +12,25 @@ use thiserror::Error;
 const HEADER_START: u8 = 0x68;
 
 // length field
+#[bitfield] // 必须放在derive之前
 #[derive(Debug, Clone, Copy, PartialEq)]
-struct LengthField(u16);
-
-impl LengthField {
-    fn new(length: u16) -> Self {
-        // 取bit0-bit13
-        Self(length & 0x1FFF)
-    }
-
-    fn len(&self) -> u16 {
-        self.0
-    }
+struct LengthField {
+    len: B14,
+    #[skip]
+    __: B2,
 }
 
 impl From<&[u8]> for LengthField {
     fn from(bytes: &[u8]) -> Self {
-        LengthField(u16::from_le_bytes([bytes[0], bytes[1]]))
+        //TODO 字节序问题？
+        //LengthField::from_bytes([bytes[0], bytes[1]])
+        LengthField::new().with_len(u16::from_le_bytes([bytes[0], bytes[1]]))
     }
 }
 
 impl From<LengthField> for Vec<u8> {
     fn from(length: LengthField) -> Self {
-        length.len().to_le_bytes().to_vec()
+        length.into_bytes().to_vec()
     }
 }
 
@@ -52,8 +49,7 @@ macro_rules! impl_into_iterator {
 impl_into_iterator!(LengthField);
 
 // ctrl field
-#[derive(Debug, Clone, Copy, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, BitfieldSpecifier)]
 enum Dir {
     Client = 0,
     Server = 1,
@@ -69,8 +65,7 @@ impl std::ops::Not for Dir {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, BitfieldSpecifier)]
 enum Prm {
     Server = 0,
     Client = 1,
@@ -86,81 +81,43 @@ impl std::ops::Not for Prm {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, IntoPrimitive, TryFromPrimitive)]
-#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, BitfieldSpecifier)]
+#[bits = 3]
 pub enum FunctionCode {
     LinkManagement = 1,
     UserData = 3,
 }
 
+#[bitfield]
 #[derive(Debug, Clone)]
 pub struct CtrlField {
-    dir: Dir,
-    prm: Prm,
-    is_fragment: bool,
-    is_scramble: bool,
+    #[bits = 3]
     function_code: FunctionCode,
-}
-
-impl Default for CtrlField {
-    fn default() -> Self {
-        CtrlField {
-            dir: Dir::Client,
-            prm: Prm::Server,
-            is_fragment: false,
-            is_scramble: false,
-            function_code: FunctionCode::UserData,
-        }
-    }
+    is_scramble: bool,
+    #[skip]
+    __: B1,
+    is_fragment: bool,
+    prm: Prm,
+    dir: Dir,
 }
 
 impl CtrlField {
-    pub fn new(
-        is_response: bool,
-        is_fragment: bool,
-        is_scramble: bool,
-        function_code: FunctionCode,
-    ) -> Self {
-        CtrlField {
-            dir: Dir::Client,
-            prm: if is_response {
-                Prm::Server
-            } else {
-                Prm::Client
-            },
-            is_scramble,
-            is_fragment,
-            function_code,
-        }
-    }
-
     fn reverse(&mut self) {
-        self.prm = !self.prm;
-        self.dir = !self.dir;
+        self.set_prm(!self.prm());
+        self.set_dir(!self.dir());
     }
 }
 
 impl From<CtrlField> for u8 {
     fn from(ctrl_field: CtrlField) -> Self {
-        // 7: dir, 6: prm, 5: fragment 3-1: function_code
-        ((ctrl_field.dir as u8) << 7)
-            | ((ctrl_field.prm as u8) << 6)
-            | ((ctrl_field.is_fragment as u8) << 5)
-            | ((ctrl_field.is_scramble as u8) << 3)
-            | (ctrl_field.function_code as u8)
+        ctrl_field.into_bytes()[0]
     }
 }
 
 impl TryFrom<u8> for CtrlField {
     type Error = crate::Error;
     fn try_from(ctrl_field: u8) -> Result<Self> {
-        Ok(CtrlField {
-            dir: ((ctrl_field >> 7) & 0x01).try_into().unwrap(),
-            prm: ((ctrl_field >> 6) & 0x01).try_into().unwrap(),
-            is_fragment: ((ctrl_field >> 5) & 0x01) == 1,
-            is_scramble: ((ctrl_field >> 3) & 0x01) == 1,
-            function_code: (ctrl_field & 0x07).try_into()?,
-        })
+        Ok(CtrlField::from_bytes([ctrl_field]))
     }
 }
 
@@ -261,7 +218,7 @@ impl Header {
     pub fn new(control_field: CtrlField, address_field: AddressField) -> Self {
         Self {
             start: HEADER_START,
-            length_field: LengthField::new(0), // 默认0 后续构造frame时计算
+            length_field: LengthField::new(), // 默认0 后续构造frame时计算
             control_field,
             address_field,
             checksum: 0,
@@ -285,7 +242,7 @@ impl Header {
     }
 
     fn is_fragment(&self) -> bool {
-        self.control_field.is_fragment
+        self.control_field.is_fragment()
     }
 }
 
@@ -596,7 +553,7 @@ impl Frame {
                     user_data,
                     tail: self.tail.clone(),
                 };
-                frame.header.control_field.is_fragment = false;
+                frame.header.control_field.set_is_fragment(false);
                 frame.calculate_length();
                 frame.calculate_checksum();
                 Ok(frame)
@@ -609,7 +566,7 @@ impl Frame {
             LENGTH_FIELD_SIZE + CONTROL_FIELD_SIZE + CHECKSUM_SIZE + TAIL_SIZE - 1;
         let length =
             self.header.address_field.bytes_len() + self.user_data.bytes_len() + FRAME_SIZE;
-        self.header.length_field.0 = length as u16;
+        self.header.length_field.set_len(length as u16); // set_len_checked
         self.header.calculate_checksum();
     }
 
@@ -706,8 +663,8 @@ mod tests {
 
         //println!("{:#?}", frame);
         assert_eq!(frame.header.length_field.len(), 0x17);
-        assert_eq!(frame.header.control_field.dir, Dir::Client);
-        assert_eq!(frame.header.control_field.prm, Prm::Client);
+        assert_eq!(frame.header.control_field.dir(), Dir::Client);
+        assert_eq!(frame.header.control_field.prm(), Prm::Client);
 
         assert_eq!(frame.header.address_field.server_addr.addr_type, 0);
         assert_eq!(frame.header.address_field.server_addr.logic_addr, 0);
@@ -740,13 +697,11 @@ mod tests {
             None,
         );
         let frame = Frame::new(
-            CtrlField {
-                dir: Dir::Client,
-                prm: Prm::Client,
-                is_fragment: false,
-                is_scramble: false,
-                function_code: FunctionCode::UserData,
-            },
+            CtrlField::new()
+                .with_dir(Dir::Client)
+                .with_prm(Prm::Client)
+                .with_is_fragment(false)
+                .with_function_code(FunctionCode::UserData),
             AddressField::new(
                 ServerAddr::new(0, 0, vec![0x00, 0x00, 0x00, 0x00, 0x00, 0x02]),
                 0x10,
@@ -789,7 +744,7 @@ mod tests {
 
         assert!(!first.combine_fragment(middle).unwrap());
         assert!(first.combine_fragment(tail).unwrap());
-        first.header.control_field.is_fragment = false;
+        first.header.control_field.set_is_fragment(false);
         let f = match first.user_data {
             UserData::Fragment(f) => f,
             _ => unreachable!(),
