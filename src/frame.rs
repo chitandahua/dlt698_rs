@@ -357,12 +357,6 @@ pub struct ApduFragment {
     fragment: Vec<u8>,
 }
 
-impl ApduFragment {
-    pub fn is_first_fragment(&self) -> bool {
-        self.format_domain.tag == FragmentTag::Start
-    }
-}
-
 impl TryFrom<&[u8]> for ApduFragment {
     type Error = crate::Error;
     fn try_from(bytes: &[u8]) -> Result<Self> {
@@ -474,13 +468,13 @@ impl Frame {
     }
 
     pub fn is_server_request(&self) -> bool {
-        self.header.control_field.prm() == Prm::Server &&
-            self.header.control_field.dir() == Dir::Server
+        self.header.control_field.prm() == Prm::Server
+            && self.header.control_field.dir() == Dir::Server
     }
 
     pub fn is_client_response(&self) -> bool {
-        self.header.control_field.prm() == Prm::Client &&
-            self.header.control_field.dir() == Dir::Client
+        self.header.control_field.prm() == Prm::Client
+            && self.header.control_field.dir() == Dir::Client
     }
 
     pub fn parse(src: &mut Cursor<&[u8]>) -> Result<Option<Self>> {
@@ -538,11 +532,18 @@ impl Frame {
         }
     }
 
+    pub fn is_first_fragment(&self) -> bool {
+        match &self.user_data {
+            UserData::Apdu(_) => false,
+            UserData::Fragment(fragment) => fragment.format_domain.tag == FragmentTag::Start,
+        }
+    }
+
     // 对于接收到的fragment进行合并 返回是否是最后一片
-    pub fn combine_fragment(&mut self, fragment: ApduFragment) -> Result<bool> {
+    pub fn combine_fragment(&mut self, frame: Frame) -> Result<bool> {
         ensure!(self.header.is_fragment(), "invalid fragment frame");
-        match &mut self.user_data {
-            UserData::Fragment(fragment1) => {
+        match (&mut self.user_data, frame.user_data) {
+            (UserData::Fragment(fragment1), UserData::Fragment(fragment)) => {
                 if fragment1.format_domain.next_index() != fragment.format_domain.index {
                     return Err(FrameError::MismatchFragmentIndex.into());
                 }
