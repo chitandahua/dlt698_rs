@@ -77,3 +77,10 @@ pub enum DAR {
     #[tag(255)]
     Other,
 }
+
+// TODO
+impl From<anyhow::Error> for DAR {
+    fn from(_: anyhow::Error) -> Self {
+        DAR::Other
+    }
+}

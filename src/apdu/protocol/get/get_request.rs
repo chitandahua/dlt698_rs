@@ -4,8 +4,8 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct GetRequestNormal {
-    piid: PIID,
-    oad: OAD,
+    pub piid: PIID,
+    pub oad: OAD,
 }
 
 impl GetRequestNormal {

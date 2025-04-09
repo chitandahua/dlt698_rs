@@ -467,13 +467,21 @@ impl Frame {
         Self::new(control_field, address_field, user_data)
     }
 
+    pub fn new_server_data_response(address_field: AddressField, user_data: UserData) -> Self {
+        let control_field = CtrlField::new()
+            .with_function_code(FunctionCode::UserData)
+            .with_prm(Prm::Client)
+            .with_dir(Dir::Server);
+        Self::new(control_field, address_field, user_data)
+    }
+
     pub fn is_server_request(&self) -> bool {
         self.header.control_field.prm() == Prm::Server
             && self.header.control_field.dir() == Dir::Server
     }
 
     pub fn is_client_response(&self) -> bool {
-        self.header.control_field.prm() == Prm::Client
+        self.header.control_field.prm() == Prm::Server
             && self.header.control_field.dir() == Dir::Client
     }
 
@@ -536,6 +544,13 @@ impl Frame {
         match &self.user_data {
             UserData::Apdu(_) => false,
             UserData::Fragment(fragment) => fragment.format_domain.tag == FragmentTag::Start,
+        }
+    }
+
+    pub fn apdu(self) -> Apdu {
+        match self.user_data {
+            UserData::Apdu(apdu) => apdu,
+            _ => unreachable!(),
         }
     }
 

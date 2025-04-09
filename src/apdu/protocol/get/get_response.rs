@@ -7,14 +7,14 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 // GetResponseNormal
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct GetResponseNormal {
-    piid_acd: PIID_ACD,
-    a_result_normal: SequenceOf<AResultNormal>,
+    pub piid_acd: PIID_ACD,
+    pub a_result_normal: AResultNormal,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct AResultNormal {
-    oad: OAD,
-    get_result: GetResult,
+    pub oad: OAD,
+    pub get_result: GetResult,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
@@ -23,6 +23,19 @@ pub enum GetResult {
     Dar(DAR),
     #[tag(1)]
     Data(Data),
+}
+
+impl<T, E> From<Result<T, E>> for GetResult
+where
+    T: Into<Data>,
+    E: Into<DAR>,
+{
+    fn from(value: Result<T, E>) -> Self {
+        match value {
+            Ok(data) => GetResult::Data(data.into()),
+            Err(err) => GetResult::Dar(err.into()),
+        }
+    }
 }
 
 // GetResponseNormalList∷

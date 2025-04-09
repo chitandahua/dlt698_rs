@@ -5,9 +5,9 @@ pub type OI = LongUnsigned;
 
 #[derive(Debug, AxdrSequence, ToAxdrSequence, Eq, PartialEq)]
 pub struct OAD {
-    object_identifier: OI,
-    attribute: Unsigned,
-    index: Unsigned,
+    pub object_identifier: OI,
+    pub attribute: Unsigned,
+    pub index: Unsigned,
 }
 
 impl OAD {
@@ -17,6 +17,12 @@ impl OAD {
             attribute: attr,
             index,
         }
+    }
+
+    pub fn as_u32(&self) -> u32 {
+        ((self.object_identifier as u32) << 16)
+            | ((self.attribute as u32) << 8)
+            | (self.index as u32)
     }
 }
 

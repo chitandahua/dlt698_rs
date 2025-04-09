@@ -5,7 +5,10 @@ mod connect;
 pub use connect::{ConnectRequest, ConnectResponse};
 
 mod get;
-pub use get::{AResultNormal, AResultRecord, GetRequest, GetRequestNormal, GetResponse};
+pub use get::{
+    AResultNormal, AResultRecord, GetRequest, GetRequestNormal, GetResponse, GetResponseNormal,
+    GetResult,
+};
 
 mod link;
 pub use link::{LinkRequest, LinkResponse, RequestType};
@@ -40,8 +43,8 @@ pub enum LinkApdu {
 // Client-APDU
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct ClientApdu {
-    application_service: ClientApplicationService,
-    time_tag: Option<TimeTag>,
+    pub application_service: ClientApplicationService,
+    pub time_tag: Option<TimeTag>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
@@ -74,9 +77,9 @@ impl ClientApdu {
 // Server-APDU
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct ServerApdu {
-    application_service: ServerApplicationService,
-    follow_report: Option<FollowReport>,
-    time_tag: Option<TimeTag>,
+    pub application_service: ServerApplicationService,
+    pub follow_report: Option<FollowReport>,
+    pub time_tag: Option<TimeTag>,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
@@ -110,7 +113,7 @@ pub enum SecurityApdu {
 
 // FollowReport
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-enum FollowReport {
+pub enum FollowReport {
     #[tag(1)]
     ResultNormalList(SequenceOf<AResultNormal>),
     #[tag(2)]

@@ -3,34 +3,45 @@ pub mod protocol;
 
 use crate::apdu::protocol::{ClientApdu, LinkApdu, SecurityApdu, ServerApdu};
 
-enumx_derive::def_impls! {
-    #[derive(Debug, PartialEq)]
-    pub enum Apdu {
-        Link(LinkApdu),
-        Client(ClientApdu),
-        Server(ServerApdu),
-        Security(SecurityApdu),
+#[derive(Debug, PartialEq)]
+pub enum Apdu {
+    Link(LinkApdu),
+    Client(ClientApdu),
+    Server(ServerApdu),
+    Security(SecurityApdu),
+}
+
+impl asn1_type::traits::ToAxdr for Apdu {
+    fn to_axdr_len(&self) -> asn1_type::Result<usize> {
+        match self {
+            Apdu::Link(link_apdu) => link_apdu.to_axdr_len(),
+            Apdu::Client(client_apdu) => client_apdu.to_axdr_len(),
+            Apdu::Server(server_apdu) => server_apdu.to_axdr_len(),
+            Apdu::Security(security_apdu) => security_apdu.to_axdr_len(),
+        }
     }
 
-    impl asn1_type::traits::ToAxdr for Apdu
-        where _Variants!(): asn1_type::traits::ToAxdr
-    {
-        fn to_axdr_len(&self) -> asn1_type::Result<usize> {
-            _match!(
-                _variant!().to_axdr_len()
-            )
+    fn write_axdr_header(
+        &self,
+        writer: &mut dyn std::io::Write,
+    ) -> asn1_type::SerializeResult<usize> {
+        match self {
+            Apdu::Link(link_apdu) => link_apdu.write_axdr_header(writer),
+            Apdu::Client(client_apdu) => client_apdu.write_axdr_header(writer),
+            Apdu::Server(server_apdu) => server_apdu.write_axdr_header(writer),
+            Apdu::Security(security_apdu) => security_apdu.write_axdr_header(writer),
         }
+    }
 
-        fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
-            _match!(
-                _variant!().write_axdr_header(writer)
-            )
-        }
-
-        fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> asn1_type::SerializeResult<usize> {
-            _match!(
-                _variant!().write_axdr_content(writer)
-            )
+    fn write_axdr_content(
+        &self,
+        writer: &mut dyn std::io::Write,
+    ) -> asn1_type::SerializeResult<usize> {
+        match self {
+            Apdu::Link(link_apdu) => link_apdu.write_axdr_content(writer),
+            Apdu::Client(client_apdu) => client_apdu.write_axdr_content(writer),
+            Apdu::Server(server_apdu) => server_apdu.write_axdr_content(writer),
+            Apdu::Security(security_apdu) => security_apdu.write_axdr_content(writer),
         }
     }
 }
