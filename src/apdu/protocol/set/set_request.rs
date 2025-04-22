@@ -5,9 +5,9 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 // SetRequestNormal
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct SetRequestNormal {
-    piid: PIID,
-    oad: OAD,
-    data: Data,
+    pub piid: PIID,
+    pub oad: OAD,
+    pub data: Data,
 }
 
 // SetRequestNormalList

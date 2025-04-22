@@ -3,7 +3,7 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 pub type OI = LongUnsigned;
 
-#[derive(Debug, AxdrSequence, ToAxdrSequence, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, AxdrSequence, ToAxdrSequence, Eq, PartialEq)]
 pub struct OAD {
     pub object_identifier: OI,
     pub attribute: Unsigned,

@@ -1,5 +1,3 @@
-use octetstring::FixedOctetString;
-
 mod bitstring;
 pub use bitstring::{BitString, FixedBitString};
 
@@ -16,7 +14,7 @@ mod null;
 pub use null::Null;
 
 mod octetstring;
-pub use octetstring::OctetString;
+pub use octetstring::{FixedOctetString, OctetString};
 
 mod optional;
 

@@ -4,6 +4,12 @@ use crate::{asn1_axdr_fixed_string, asn1_axdr_string};
 asn1_axdr_string!(VisibleString);
 asn1_axdr_fixed_string!(FixedVisibleString);
 
+impl<const N: usize> From<FixedVisibleString<N>> for VisibleString {
+    fn from(value: FixedVisibleString<N>) -> Self {
+        VisibleString::from(value.data)
+    }
+}
+
 fn test_visible_valid_charset(i: &[u8]) -> Result<()> {
     #[allow(clippy::trivially_copy_pass_by_ref)]
     fn is_visible(b: &u8) -> bool {

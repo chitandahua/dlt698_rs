@@ -1,3 +1,5 @@
+use core::panic;
+
 use proc_macro2::{Span, TokenStream};
 use quote::{format_ident, quote};
 use syn::{
@@ -292,6 +294,74 @@ pub fn derive_toaxdr_sequence(mut s: synstructure::Structure) -> proc_macro2::To
             #impl_write_axdr_content
         }
     });
+    if debug_derive {
+        eprintln!("{}", ts);
+    }
+    ts
+}
+
+pub fn derive_into_data(s: synstructure::Structure) -> proc_macro2::TokenStream {
+    let ast = s.ast();
+
+    let debug_derive = ast.attrs.iter().any(|attr| {
+        attr.meta
+            .path()
+            .is_ident(&Ident::new("debug_derive", Span::call_site()))
+    });
+
+    let ts = match &ast.data {
+        syn::Data::Struct(ds) => {
+            match ds.fields {
+                syn::Fields::Named(_) => {
+                    let into_data = ds.fields.members().fold(Vec::new(), |mut instrs, field| {
+                        instrs.push(quote! {datas.push(self.#field.into());});
+                        instrs
+                    });
+                    let len = ds.fields.len();
+
+                    s.gen_impl(quote! {
+                        gen impl Into<Data> for @Self {
+                            fn into(self) -> Data {
+                                let mut datas : Vec<Data> = Vec::with_capacity(#len);
+                                #(#into_data)*
+                                Data::Structure(datas)
+                            }
+                        }
+                    })
+                }
+                syn::Fields::Unnamed(_) => {
+                    // 只支持单个
+                    if ds.fields.len() != 1 {
+                        panic!(
+                            "Tuple structs that contain more than one element are not supported"
+                        );
+                    }
+
+                    s.gen_impl(quote! {
+                        gen impl Into<Data> for @Self {
+                            fn into(self) -> Data {
+                                self.0.into()
+                            }
+                        }
+                    })
+                }
+                syn::Fields::Unit => panic!("Unit structs are not supported"),
+            }
+        }
+        // TODO 只支持不带成员的枚举
+        syn::Data::Enum(_) => {
+            let name = &ast.ident;
+            quote! {
+                impl Into<Data> for #name where #name: Into<dlt698_rs::asn1_type::Enumerated> {
+                    fn into(self) -> Data {
+                        Data::Enum(self.into())
+                    }
+                }
+            }
+        }
+        _ => panic!("Only structs and enums are supported"),
+    };
+
     if debug_derive {
         eprintln!("{}", ts);
     }

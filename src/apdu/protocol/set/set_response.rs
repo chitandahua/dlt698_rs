@@ -6,9 +6,9 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 // SetResponseNormal
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct SetResponseNormal {
-    piid_acd: PIID_ACD,
-    oad: OAD,
-    result: DAR,
+    pub piid_acd: PIID_ACD,
+    pub oad: OAD,
+    pub result: DAR,
 }
 
 // SetResponseNormalList

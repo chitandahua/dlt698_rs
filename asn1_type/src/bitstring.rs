@@ -145,6 +145,13 @@ impl ToAxdr for BitString {
     }
 }
 
+impl<const N: usize, const BYTES: usize> From<FixedBitString<N, BYTES>> for BitString {
+    fn from(b: FixedBitString<N, BYTES>) -> Self {
+        let unused_bits = 8 * BYTES - N;
+        BitString::new(unused_bits as u8, b.as_ref())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

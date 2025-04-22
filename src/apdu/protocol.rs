@@ -6,8 +6,9 @@ pub use connect::{ConnectRequest, ConnectResponse};
 
 mod get;
 pub use get::{
-    AResultNormal, AResultRecord, GetRequest, GetRequestNormal, GetResponse, GetResponseNormal,
-    GetResult,
+    AResultNormal, AResultRecord, GetRequest, GetRequestMD5, GetRequestNext, GetRequestNormal,
+    GetRequestNormalList, GetRequestRecord, GetRequestRecordList, GetResponse, GetResponseNormal,
+    GetResponseNormalList, GetResponseRecord, GetResponseRecordList, GetResult,
 };
 
 mod link;
@@ -26,7 +27,7 @@ mod security;
 pub use security::{SecurityRequest, SecurityResponse};
 
 mod set;
-pub use set::{SetRequest, SetResponse};
+pub use set::{SetRequest, SetRequestNormal, SetResponse, SetResponseNormal};
 
 use crate::apdu::data_unit::{DateTimeS, TI};
 use asn1_type::SequenceOf;

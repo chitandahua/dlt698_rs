@@ -2,7 +2,7 @@ use crate::apdu::data_unit::{OAD, PIID, RCSD, RSD};
 use asn1_type::{LongUnsigned, SequenceOf};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
-#[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct GetRequestNormal {
     pub piid: PIID,
     pub oad: OAD,

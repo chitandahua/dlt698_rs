@@ -132,6 +132,12 @@ impl ToAxdr for &'_ [u8] {
     }
 }
 
+impl<const N: usize> From<FixedOctetString<N>> for OctetString {
+    fn from(b: FixedOctetString<N>) -> Self {
+        OctetString { data: b.0.to_vec() }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

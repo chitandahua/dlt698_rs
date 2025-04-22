@@ -78,9 +78,14 @@ pub enum DAR {
     Other,
 }
 
-// TODO
-impl From<anyhow::Error> for DAR {
-    fn from(_: anyhow::Error) -> Self {
-        DAR::Other
+impl<T, E> From<std::result::Result<T, E>> for DAR
+where
+    E: Into<DAR>,
+{
+    fn from(result: std::result::Result<T, E>) -> Self {
+        match result {
+            Ok(_) => DAR::Success,
+            Err(t) => t.into(),
+        }
     }
 }

@@ -1,6 +1,7 @@
 use asn1_type::traits::{FromAxdr, ToAxdr};
 use asn1_type::{
-    BitString, Float32, Float64, Long64, Long64Unsigned, Null, Utf8String, VisibleString,
+    BitString, FixedBitString, FixedOctetString, FixedUtf8String, FixedVisibleString, Float32,
+    Float64, Long64, Long64Unsigned, Null, Utf8String, VisibleString,
 };
 use asn1_type::{
     Boolean, DoubleLong, DoubleLongUnsigned, Enumerated, Integer, Long, LongUnsigned, OctetString,
@@ -122,6 +123,89 @@ impl ToAxdr for Box<Data> {
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
         self.as_ref().write_axdr_content(writer)
+    }
+}
+
+macro_rules! impl_into_data {
+    ($ty:ty, $to:ident) => {
+        impl From<$ty> for Data {
+            fn from(value: $ty) -> Self {
+                Data::$to(value)
+            }
+        }
+    };
+}
+
+impl_into_data!(Null, Null);
+impl_into_data!(Boolean, Bool);
+impl_into_data!(BitString, BitString);
+impl_into_data!(DoubleLong, DoubleLong);
+impl_into_data!(DoubleLongUnsigned, DoubleLongUnsigned);
+impl_into_data!(OctetString, OctetString);
+impl_into_data!(VisibleString, VisibleString);
+impl_into_data!(Utf8String, Utf8String);
+impl_into_data!(Integer, Integer);
+impl_into_data!(Long, Long);
+impl_into_data!(Unsigned, Unsigned);
+impl_into_data!(LongUnsigned, LongUnsigned);
+impl_into_data!(Long64, Long64);
+impl_into_data!(Long64Unsigned, Long64Unsigned);
+impl_into_data!(Enumerated, Enum);
+// TODO 别名需要单独实现 或者不用type XX = YY了
+//impl_into_data!(Float32, Float32);
+//impl_into_data!(Float64, Float64);
+impl_into_data!(DateTime, DateTime);
+impl_into_data!(Date, Date);
+impl_into_data!(Time, Time);
+impl_into_data!(DateTimeS, DateTimeS);
+//impl_into_data!(OI, OI);
+impl_into_data!(OAD, OAD);
+impl_into_data!(ROAD, ROAD);
+impl_into_data!(OMD, OMD);
+impl_into_data!(TI, TI);
+//impl_into_data!(TSA, TSA);
+//impl_into_data!(MAC, MAC);
+//impl_into_data!(RN, RN);
+impl_into_data!(Region, Region);
+impl_into_data!(ScalerUnit, ScalerUnit);
+impl_into_data!(RSD, RSD);
+impl_into_data!(CSD, CSD);
+impl_into_data!(MS, MS);
+impl_into_data!(SID, SID);
+impl_into_data!(SIDMAC, SIDMAC);
+impl_into_data!(COMDCB, COMDCB);
+//impl_into_data!(RCSD, RCSD);
+
+impl<const N: usize> From<FixedOctetString<N>> for Data {
+    fn from(value: FixedOctetString<N>) -> Self {
+        Data::OctetString(value.into())
+    }
+}
+
+impl<const N: usize, const BYTES: usize> From<FixedBitString<N, BYTES>> for Data {
+    fn from(value: FixedBitString<N, BYTES>) -> Self {
+        Data::BitString(value.into())
+    }
+}
+
+impl<const N: usize> From<FixedUtf8String<N>> for Data {
+    fn from(value: FixedUtf8String<N>) -> Self {
+        Data::Utf8String(value.into())
+    }
+}
+
+impl<const N: usize> From<FixedVisibleString<N>> for Data {
+    fn from(value: FixedVisibleString<N>) -> Self {
+        Data::VisibleString(value.into())
+    }
+}
+
+impl<T> From<SequenceOf<T>> for Data
+where
+    T: Into<Data>,
+{
+    fn from(value: SequenceOf<T>) -> Self {
+        Data::Array(value.into_iter().map(Into::into).collect())
     }
 }
 

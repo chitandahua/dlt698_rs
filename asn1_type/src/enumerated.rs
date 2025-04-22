@@ -32,3 +32,12 @@ impl ToAxdr for Enumerated {
         self.0.write_axdr_content(writer)
     }
 }
+
+impl<T> From<T> for Enumerated
+where
+    T: Into<u8>,
+{
+    fn from(value: T) -> Self {
+        Enumerated::new(value.into())
+    }
+}
