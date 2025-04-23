@@ -40,6 +40,12 @@ pub struct Float64(pub FixedOctetString<8>);
 #[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
 pub struct TSA(pub OctetString);
 
+impl TSA {
+    pub fn new(data: &[u8]) -> Self {
+        Self(OctetString::new(data))
+    }
+}
+
 use modular_bitfield::prelude::*;
 use std::sync::atomic::{AtomicU8, Ordering};
 

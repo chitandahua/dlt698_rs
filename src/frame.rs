@@ -710,7 +710,7 @@ mod tests {
         assert_eq!(frame.header.checksum, 0x5e48);
         assert_eq!(
             frame.user_data,
-            UserData::Apdu(Apdu::ClientApdu(ClientApdu::new(
+            UserData::Apdu(Apdu::Client(ClientApdu::new(
                 ClientApplicationService::GetRequest(GetRequest::GetRequestNormal(
                     GetRequestNormal::new(0x15, OAD::new(0xf101, 0x02, 0x00)),
                 )),
@@ -740,7 +740,7 @@ mod tests {
                 ServerAddr::new(0, 0, vec![0x00, 0x00, 0x00, 0x00, 0x00, 0x02]),
                 0x10,
             ),
-            UserData::Apdu(Apdu::ClientApdu(apdu)),
+            UserData::Apdu(Apdu::Client(apdu)),
         );
 
         assert_eq!(Into::<Vec<u8>>::into(frame), bytes);
@@ -765,16 +765,9 @@ mod tests {
         let mut first = Frame::try_from(first.as_slice()).unwrap();
         let middle = hex::decode("681400a30502000000000010767506f1f101025a3016").unwrap();
         let middle = Frame::try_from(middle.as_slice()).unwrap();
-        let middle = match middle.user_data {
-            UserData::Fragment(f) => f,
-            _ => unreachable!(),
-        };
+
         let tail = hex::decode("681300a3050200000000001090d50741000004fc16").unwrap();
         let tail = Frame::try_from(tail.as_slice()).unwrap();
-        let tail = match tail.user_data {
-            UserData::Fragment(f) => f,
-            _ => unreachable!(),
-        };
 
         assert!(!first.combine_fragment(middle).unwrap());
         assert!(first.combine_fragment(tail).unwrap());

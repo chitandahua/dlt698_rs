@@ -12,9 +12,9 @@ pub struct OAD {
 }
 
 impl OAD {
-    pub fn new(oi: OI, attr: Unsigned, index: Unsigned) -> OAD {
+    pub fn new(oi: LongUnsigned, attr: Unsigned, index: Unsigned) -> OAD {
         OAD {
-            object_identifier: oi,
+            object_identifier: OI(oi),
             attribute: attr,
             index,
         }
@@ -56,7 +56,7 @@ mod tests {
     fn test_oad_from_axdr() {
         let axdr = [0x20, 0x2a, 0x02, 0x00];
         let (_byte, oad) = OAD::from_axdr(&axdr).unwrap();
-        assert_eq!(oad.object_identifier, 0x202a);
+        assert_eq!(oad.object_identifier.0, 0x202a);
         assert_eq!(oad.attribute, 0x02);
         assert_eq!(oad.index, 0);
     }

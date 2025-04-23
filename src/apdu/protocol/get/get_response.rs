@@ -182,7 +182,7 @@ pub enum ResultMD5 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::apdu::data_unit::CSD;
+    use crate::apdu::data_unit::{CSD, RCSD, TSA};
     use asn1_type::traits::{FromAxdr, ToAxdr};
 
     #[test]
@@ -202,16 +202,16 @@ mod tests {
             piid_acd: 37,
             a_result_record: AResultRecord {
                 oad: OAD::new(24594, 3, 0),
-                rcsd: vec![
+                rcsd: RCSD(vec![
                     CSD::Oad(OAD::new(8234, 2, 0)),
                     CSD::Oad(OAD::new(16, 2, 0)),
                     CSD::Oad(OAD::new(8192, 2, 0)),
                     CSD::Oad(OAD::new(8193, 2, 0)),
-                ],
+                ]),
                 record_result: RecordResult::RecordRows(vec![
                     ARecordRow {
                         data: vec![
-                            Data::TSA(OctetString::new(&[5, 0, 0, 0, 0, 0, 1])),
+                            Data::TSA(TSA(OctetString::new(&[5, 0, 0, 0, 0, 0, 1]))),
                             Data::Array(vec![
                                 Data::DoubleLongUnsigned(600000),
                                 Data::DoubleLongUnsigned(75424),
@@ -233,7 +233,7 @@ mod tests {
                     },
                     ARecordRow {
                         data: vec![
-                            Data::TSA(OctetString::new(&[5, 0, 0, 0, 0, 0, 2])),
+                            Data::TSA(TSA(OctetString::new(&[5, 0, 0, 0, 0, 0, 2]))),
                             Data::Array(vec![
                                 Data::DoubleLongUnsigned(600000),
                                 Data::DoubleLongUnsigned(100000),
