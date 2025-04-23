@@ -1,7 +1,7 @@
 use asn1_type::traits::{FromAxdr, ToAxdr};
 use asn1_type::{
-    BitString, FixedBitString, FixedOctetString, FixedUtf8String, FixedVisibleString, Float32,
-    Float64, Long64, Long64Unsigned, Null, Utf8String, VisibleString,
+    BitString, FixedBitString, FixedOctetString, FixedUtf8String, FixedVisibleString, Long64,
+    Long64Unsigned, Null, Utf8String, VisibleString,
 };
 use asn1_type::{
     Boolean, DoubleLong, DoubleLongUnsigned, Enumerated, Integer, Long, LongUnsigned, OctetString,
@@ -11,8 +11,8 @@ use asn1_type::{Error, ParseResult, Result, SerializeResult};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 use crate::apdu::data_unit::{
-    Date, DateTime, DateTimeS, Region, Time, COMDCB, CSD, MAC, MS, OAD, OI, OMD, RCSD, RN, ROAD,
-    RSD, SID, SIDMAC, TI, TSA,
+    Date, DateTime, DateTimeS, Float32, Float64, Region, Time, COMDCB, CSD, MAC, MS, OAD, OI, OMD,
+    RCSD, RN, ROAD, RSD, SID, SIDMAC, TI, TSA,
 };
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
@@ -151,21 +151,20 @@ impl_into_data!(LongUnsigned, LongUnsigned);
 impl_into_data!(Long64, Long64);
 impl_into_data!(Long64Unsigned, Long64Unsigned);
 impl_into_data!(Enumerated, Enum);
-// TODO 别名需要单独实现 或者不用type XX = YY了
-//impl_into_data!(Float32, Float32);
-//impl_into_data!(Float64, Float64);
+impl_into_data!(Float32, Float32);
+impl_into_data!(Float64, Float64);
 impl_into_data!(DateTime, DateTime);
 impl_into_data!(Date, Date);
 impl_into_data!(Time, Time);
 impl_into_data!(DateTimeS, DateTimeS);
-//impl_into_data!(OI, OI);
+impl_into_data!(OI, OI);
 impl_into_data!(OAD, OAD);
 impl_into_data!(ROAD, ROAD);
 impl_into_data!(OMD, OMD);
 impl_into_data!(TI, TI);
-//impl_into_data!(TSA, TSA);
-//impl_into_data!(MAC, MAC);
-//impl_into_data!(RN, RN);
+impl_into_data!(TSA, TSA);
+impl_into_data!(MAC, MAC);
+impl_into_data!(RN, RN);
 impl_into_data!(Region, Region);
 impl_into_data!(ScalerUnit, ScalerUnit);
 impl_into_data!(RSD, RSD);
@@ -174,7 +173,7 @@ impl_into_data!(MS, MS);
 impl_into_data!(SID, SID);
 impl_into_data!(SIDMAC, SIDMAC);
 impl_into_data!(COMDCB, COMDCB);
-//impl_into_data!(RCSD, RCSD);
+impl_into_data!(RCSD, RCSD);
 
 impl<const N: usize> From<FixedOctetString<N>> for Data {
     fn from(value: FixedOctetString<N>) -> Self {

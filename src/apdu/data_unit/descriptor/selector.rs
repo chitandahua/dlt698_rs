@@ -100,7 +100,8 @@ pub struct Selector10 {
     ms: MS,
 }
 
-pub type RCSD = SequenceOf<CSD>;
+#[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
+pub struct RCSD(pub SequenceOf<CSD>);
 
 #[cfg(test)]
 mod tests {

@@ -124,7 +124,7 @@ impl ToAxdr for &'_ [u8] {
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {
-        UnsignedInteger::from_usize(self.len()).write_axdr(writer) // TODO
+        UnsignedInteger::from_usize(self.len()).write_axdr(writer)
     }
 
     fn write_axdr_content(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

@@ -99,7 +99,7 @@ impl FromAxdr<'_> for AResultRecord {
     fn from_axdr(bytes: &[u8]) -> ParseResult<Self> {
         let (bytes, oad) = OAD::from_axdr(bytes)?;
         let (bytes, rcsd) = RCSD::from_axdr(bytes)?;
-        let csd_num = rcsd.len();
+        let csd_num = rcsd.0.len();
 
         let (bytes, tag) = u8::from_axdr(bytes)?;
         let (bytes, record_result) = match tag {

@@ -1,4 +1,4 @@
-use asn1_type::{OctetString, Unsigned};
+use asn1_type::{FixedOctetString, OctetString, Unsigned};
 
 mod com;
 pub use com::COMDCB;
@@ -30,7 +30,15 @@ pub use security::{MAC, RN, SID, SIDMAC};
 pub type PIID = Unsigned;
 #[allow(non_camel_case_types)]
 pub type PIID_ACD = Unsigned;
-pub type TSA = OctetString;
+
+use axdr_macro::{AxdrSequence, ToAxdrSequence};
+#[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
+pub struct Float32(pub FixedOctetString<4>);
+#[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
+pub struct Float64(pub FixedOctetString<8>);
+
+#[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
+pub struct TSA(pub OctetString);
 
 use modular_bitfield::prelude::*;
 use std::sync::atomic::{AtomicU8, Ordering};

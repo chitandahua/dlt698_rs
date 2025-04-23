@@ -46,8 +46,6 @@ pub type LongUnsigned = u16;
 pub type Long64 = i64;
 pub type Long64Unsigned = u64;
 
-pub type Float32 = FixedOctetString<4>;
-pub type Float64 = FixedOctetString<8>;
 //type DateTime = FixedOctetString<10>;
 //type Date = FixedOctetString<5>;
 //type Time = FixedOctetString<3>;

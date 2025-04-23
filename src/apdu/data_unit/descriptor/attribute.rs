@@ -1,7 +1,8 @@
 use asn1_type::{LongUnsigned, SequenceOf, Unsigned};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
-pub type OI = LongUnsigned;
+#[derive(Debug, Clone, Copy, AxdrSequence, ToAxdrSequence, Eq, PartialEq)]
+pub struct OI(pub LongUnsigned);
 
 #[derive(Debug, Clone, Copy, AxdrSequence, ToAxdrSequence, Eq, PartialEq)]
 pub struct OAD {
@@ -20,7 +21,7 @@ impl OAD {
     }
 
     pub fn as_u32(&self) -> u32 {
-        ((self.object_identifier as u32) << 16)
+        ((self.object_identifier.0 as u32) << 16)
             | ((self.attribute as u32) << 8)
             | (self.index as u32)
     }

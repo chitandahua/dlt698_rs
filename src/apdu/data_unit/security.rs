@@ -1,7 +1,8 @@
 use asn1_type::{DoubleLongUnsigned, OctetString};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
-pub type MAC = OctetString;
+#[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
+pub struct MAC(pub OctetString);
 
 #[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
 pub struct SID {
@@ -15,4 +16,5 @@ pub struct SIDMAC {
     mac: MAC,
 }
 
-pub type RN = OctetString;
+#[derive(Debug, PartialEq, Eq, ToAxdrSequence, AxdrSequence)]
+pub struct RN(pub OctetString);
