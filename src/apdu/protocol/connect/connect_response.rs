@@ -5,25 +5,25 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct ConnectResponse {
-    piid_acd: PIID_ACD,
-    factory_version: FactoryVersion,
-    protocol_version: LongUnsigned,
-    protocol_conformance: ProtocolConformance,
-    function_conformance: FunctionConformance,
-    max_frame_size: LongUnsigned,
-    max_segment_size: LongUnsigned,
-    max_segment_window: Unsigned,
-    max_apdu_size: LongUnsigned,
-    connection_timeout: DoubleLongUnsigned,
-    connect_response_info: ConnectResponseInfo,
+    pub piid_acd: PIID_ACD,
+    pub factory_version: FactoryVersion,
+    pub protocol_version: LongUnsigned,
+    pub protocol_conformance: ProtocolConformance,
+    pub function_conformance: FunctionConformance,
+    pub max_frame_size: LongUnsigned,
+    pub max_segment_size: LongUnsigned,
+    pub max_segment_window: Unsigned,
+    pub max_apdu_size: LongUnsigned,
+    pub connection_timeout: DoubleLongUnsigned,
+    pub connect_response_info: ConnectResponseInfo,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
-struct FactoryVersion {
-    manufacturer_code: FixedVisibleString<4>,
-    software_version: FixedVisibleString<4>,
-    software_date: FixedVisibleString<6>,
-    hardware_version: FixedVisibleString<4>,
-    hardware_date: FixedVisibleString<6>,
-    manufacturer_extension: FixedVisibleString<8>,
+pub struct FactoryVersion {
+    pub manufacturer_code: FixedVisibleString<4>,
+    pub software_version: FixedVisibleString<4>,
+    pub software_date: FixedVisibleString<6>,
+    pub hardware_version: FixedVisibleString<4>,
+    pub hardware_date: FixedVisibleString<6>,
+    pub manufacturer_extension: FixedVisibleString<8>,
 }

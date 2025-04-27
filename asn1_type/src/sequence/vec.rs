@@ -31,12 +31,9 @@ where
     T: ToAxdr,
 {
     fn to_axdr_len(&self) -> Result<usize> {
-        // 取第一个的长度  若空则为0
-        let len: usize = if self.is_empty() {
-            0
-        } else {
-            self[0].to_axdr_len()?
-        } * self.len();
+        let len = self
+            .iter()
+            .try_fold(0, |acc, t| Ok::<_, crate::Error>(acc + t.to_axdr_len()?))?;
         Ok(UnsignedInteger::from_usize(self.len()).to_axdr_len()? + len)
     }
 

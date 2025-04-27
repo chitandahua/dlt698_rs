@@ -30,7 +30,8 @@ where
     T: ToAxdr,
 {
     fn to_axdr_len(&self) -> Result<usize> {
-        Ok(self[0].to_axdr_len()? * N)
+        self.iter()
+            .try_fold(0, |acc, t| Ok::<_, crate::Error>(acc + t.to_axdr_len()?))
     }
 
     fn write_axdr_header(&self, _writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

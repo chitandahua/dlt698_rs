@@ -8,6 +8,12 @@ use std::array::TryFromSliceError;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FixedOctetString<const N: usize>([u8; N]);
 
+impl<const N: usize> Default for FixedOctetString<N> {
+    fn default() -> Self {
+        Self([0; N])
+    }
+}
+
 impl<const N: usize> FixedOctetString<N> {
     pub fn new(data: [u8; N]) -> Self {
         Self(data)
@@ -106,7 +112,7 @@ impl FromAxdr<'_> for OctetString {
 
 impl ToAxdr for OctetString {
     fn to_axdr_len(&self) -> Result<usize> {
-        Ok(UnsignedInteger::from_usize(self.as_ref().len()).to_axdr_len()? + self.as_ref().len())
+        Ok(UnsignedInteger::from_usize(self.as_ref().len()).to_axdr_len()? + self.data.len())
     }
 
     fn write_axdr_header(&self, writer: &mut dyn std::io::Write) -> SerializeResult<usize> {

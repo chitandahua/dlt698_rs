@@ -41,8 +41,8 @@ pub struct GetRequestRecordList {
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct GetRequestNext {
-    piid: PIID,
-    last_block_number: LongUnsigned,
+    pub piid: PIID,
+    pub last_block_number: LongUnsigned,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]

@@ -5,14 +5,14 @@ use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct ConnectRequest {
-    piid: PIID,
-    version: LongUnsigned,
-    protocol_conformance: ProtocolConformance,
-    function_conformance: FunctionConformance,
-    max_send_size: LongUnsigned,
-    max_receive_size: LongUnsigned,
-    max_receive_window_size: Unsigned,
-    max_apdu_size: LongUnsigned,
-    timeout: DoubleLongUnsigned,
-    connect_mechanism_info: ConnectMechanismInfo,
+    pub piid: PIID,
+    pub version: LongUnsigned,
+    pub protocol_conformance: ProtocolConformance,
+    pub function_conformance: FunctionConformance,
+    pub max_send_size: LongUnsigned,
+    pub max_receive_size: LongUnsigned,
+    pub max_receive_window_size: Unsigned,
+    pub max_apdu_size: LongUnsigned,
+    pub timeout: DoubleLongUnsigned,
+    pub connect_mechanism_info: ConnectMechanismInfo,
 }

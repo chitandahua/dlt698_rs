@@ -1,6 +1,6 @@
 use crate::apdu::data_unit::{Data, DAR, OAD, PIID_ACD, RCSD};
 use asn1_type::traits::{FromAxdr, ToAxdr};
-use asn1_type::{Boolean, LongUnsigned, OctetString, SequenceOf, UnsignedInteger};
+use asn1_type::{LongUnsigned, OctetString, SequenceOf, UnsignedInteger};
 use asn1_type::{ParseResult, Result, SerializeResult};
 use axdr_macro::{AxdrSequence, ToAxdrSequence};
 
@@ -147,10 +147,10 @@ pub struct GetResponseRecordList {
 // GetResponseNext
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub struct GetResponseNext {
-    piid_acd: PIID_ACD,
-    last_fragment: Boolean,
-    fragment_number: LongUnsigned,
-    fragment_response: FragmentResponse,
+    pub piid_acd: PIID_ACD,
+    pub last_fragment: bool,
+    pub fragment_number: LongUnsigned,
+    pub fragment_response: FragmentResponse,
 }
 
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
@@ -161,6 +161,24 @@ pub enum FragmentResponse {
     AResultNormal(SequenceOf<AResultNormal>),
     #[tag(2)]
     AResultRecord(SequenceOf<AResultRecord>),
+}
+
+pub trait IntoResponseNext {
+    fn into_response_next(self, is_last: bool, fragment_number: LongUnsigned) -> GetResponseNext;
+}
+
+impl IntoResponseNext for GetResponseNormal {
+    fn into_response_next(self, is_last: bool, fragment_number: LongUnsigned) -> GetResponseNext {
+        GetResponseNext {
+            piid_acd: self.piid_acd,
+            last_fragment: is_last,
+            fragment_number,
+            fragment_response: match &self.a_result_normal.get_result {
+                GetResult::Dar(dar) => FragmentResponse::Dar(*dar),
+                GetResult::Data(_) => FragmentResponse::AResultNormal(vec![self.a_result_normal]),
+            },
+        }
+    }
 }
 
 // GetResponseMD5

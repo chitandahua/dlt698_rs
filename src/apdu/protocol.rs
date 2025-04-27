@@ -5,11 +5,7 @@ mod connect;
 pub use connect::{ConnectRequest, ConnectResponse};
 
 mod get;
-pub use get::{
-    AResultNormal, AResultRecord, GetRequest, GetRequestMD5, GetRequestNext, GetRequestNormal,
-    GetRequestNormalList, GetRequestRecord, GetRequestRecordList, GetResponse, GetResponseNormal,
-    GetResponseNormalList, GetResponseRecord, GetResponseRecordList, GetResult,
-};
+pub use get::*;
 
 mod link;
 pub use link::{LinkRequest, LinkResponse, RequestType};
