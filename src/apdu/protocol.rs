@@ -99,6 +99,24 @@ pub enum ServerApplicationService {
     ProxyResponse(ProxyResponse),
 }
 
+impl From<GetResponseNormal> for ServerApplicationService {
+    fn from(value: GetResponseNormal) -> ServerApplicationService {
+        ServerApplicationService::GetResponse(GetResponse::GetResponseNormal(value))
+    }
+}
+
+impl From<SetResponseNormal> for ServerApplicationService {
+    fn from(value: SetResponseNormal) -> ServerApplicationService {
+        ServerApplicationService::SetResponse(SetResponse::SetResponseNormal(value))
+    }
+}
+
+impl From<GetResponseNext> for ServerApplicationService {
+    fn from(value: GetResponseNext) -> ServerApplicationService {
+        ServerApplicationService::GetResponse(GetResponse::GetResponseNext(value))
+    }
+}
+
 // Security-APDU
 #[derive(Debug, PartialEq, Eq, AxdrSequence, ToAxdrSequence)]
 pub enum SecurityApdu {
